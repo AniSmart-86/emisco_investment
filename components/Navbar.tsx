@@ -135,7 +135,7 @@ export function Navbar() {
                   {item.name}
                 </Link>
               ))}
-              {user?.role === 'admin' && (
+              {user?.role === 'ADMIN' && (
                 <Link
                   href="/admin"
                   className="text-lg font-medium p-2 rounded-lg text-red-500"
