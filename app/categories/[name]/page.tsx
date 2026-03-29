@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useParams } from 'next/navigation';
+
 import { api } from '@/lib/api';
 import { Product } from '@/lib/types';
 import { ProductCard } from '@/components/ProductCard';
@@ -61,7 +61,7 @@ export default function CategoryDetailsPage() {
              <Search className="w-10 h-10 text-muted-foreground/30" />
            </div>
            <h3 className="text-2xl font-bold mb-2">No Parts Found</h3>
-           <p className="text-muted-foreground mb-8 italic">We currently don't have stock for {decodedName} in our inventory.</p>
+           <p className="text-muted-foreground mb-8 italic">We currently don&apos;t have stock for {decodedName} in our inventory.</p>
            <Link href="/products">
              <Button variant="outline" className="rounded-xl border-pure-green text-pure-green hover:bg-pure-green/10">Browse Full Catalog</Button>
            </Link>

@@ -1,8 +1,8 @@
 'use client';
-
+export const dynamic = 'force-dynamic';
 import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, SlidersHorizontal, Grid, List as ListIcon, X } from 'lucide-react';
+import { Search, SlidersHorizontal, Grid, List as ListIcon, X, Loader2 } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 import { api } from '@/lib/api';
 import { Input } from '@/components/ui/input'; 
@@ -120,7 +120,14 @@ export default function ProductsPage() {
           </div>
 
           {/* Product Grid */}
+
           <AnimatePresence mode="popLayout">
+            {isLoading &&(
+              <div>
+                processing...
+                <Loader2 className='w-6 h-6 animate-spin ml-2'/>
+              </div>
+            )}
             {filteredProducts.length > 0 ? (
               <motion.div
                 layout

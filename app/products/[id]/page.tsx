@@ -25,10 +25,7 @@ export default function ProductDetailsPage() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // We don't call setIsLoading(true) synchronously here to avoid cascading renders.
-    // Since isLoading is initialized to true, the first fetch is covered.
-    // If the ID changes later, we set it then.
-    
+   
     let isDataFetched = false;
 
     const fetchProduct = async () => {
