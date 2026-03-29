@@ -41,13 +41,8 @@ export default function RegisterForm({
       login(user, token);
 
       toast.success(`Account created for ${user.name}!`);
-
-      // 🔥 Role-based redirect
-      if (user.role === 'ADMIN') {
-        router.push('/admin');
-      } else {
-        router.push(redirectTo);
-      }
+        router.push('/dashboard');
+      
     } catch (error) {
       if (axios.isAxiosError(error)) {
         toast.error(error.response?.data?.error || 'Registration failed.');

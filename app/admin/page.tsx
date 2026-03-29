@@ -120,7 +120,7 @@ export default function AdminDashboard() {
   }
 
   const navItems = [
-    { id: 'dashboard', label: `Welcome ${user?.name}`, icon: LayoutDashboard },
+    { id: 'dashboard', label: `Dashboard`, icon: LayoutDashboard },
     { id: 'products', label: 'Products', icon: Package },
     { id: 'add-product', label: 'Add Product', icon: PlusCircle },
     { id: 'users', label: 'Users', icon: Users },
@@ -135,16 +135,16 @@ export default function AdminDashboard() {
         <Button
           variant="ghost"
           size="icon"
-          className="fixed top-4 left-4 z-50 lg:hidden bg-background"
+          className="fixed top-15 left-4 z-50 lg:hidden bg-dark-green"
           onClick={() => setIsSidebarOpen(true)}
         >
-          <Menu className="w-6 h-6" />
+          <Menu className="w-12 h-12" />
         </Button>
       )}
 
       <div className="flex">
         {/* Sidebar */}
-        <aside className={`fixed inset-y-0 left-0 z-40 w-72 bg-dark-green text-white transition-transform duration-300 lg:translate-x-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+        <aside className={`fixed inset-y-0 left-0 top-20 z-40 w-72 bg-dark-green text-white transition-transform duration-300 lg:translate-x-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
           <div className="flex flex-col h-full p-6">
             <div className="flex items-center justify-between mb-12">
               <Link href="/" className="flex items-center gap-2">
@@ -154,7 +154,7 @@ export default function AdminDashboard() {
                 <span className="font-bold text-xl">EMISCO ADMIN</span>
               </Link>
               <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setIsSidebarOpen(false)}>
-                <X className="w-6 h-6" />
+                <X className="w-8 h-8" />
               </Button>
             </div>
 
@@ -186,9 +186,10 @@ export default function AdminDashboard() {
           <div className="max-w-7xl mx-auto space-y-12">
             <div className="flex justify-between items-end">
               <div>
-                <h1 className="text-4xl font-bold mb-2">
+                <h1 className="text-4xl font-bold mb-4">Welcome {user?.name}</h1>
+                <h2 className="text-3xl font-bold mb-2">
                   {navItems.find(i => i.id === activeTab)?.label}
-                </h1>
+                </h2>
                 <p className="text-muted-foreground italic">Administrative Overview • March 2026</p>
               </div>
               <div className="hidden sm:block">

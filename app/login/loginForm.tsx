@@ -42,7 +42,7 @@ export default function LoginForm({
       if (user.role === 'ADMIN') {
         router.push('/admin');
       } else {
-        router.push(redirectTo);
+        router.push('/dashboard');
       }
     } catch (error) {
       if (axios.isAxiosError(error)) {
