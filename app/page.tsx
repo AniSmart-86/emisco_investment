@@ -48,7 +48,7 @@ export default function Home() {
           <div className="absolute inset-0 bg-linear-to-r from-background via-background/80 to-transparent" />
         </div>
 
-        <div className="container mx-auto px-4 relative z-10">
+        <div className="container mx-auto px-8 relative z-10">
           <motion.div
             initial={{ opacity: 0, x: -50 }}
             animate={{ opacity: 1, x: 0 }}
@@ -67,15 +67,15 @@ export default function Home() {
             <p className="text-muted-foreground text-lg md:text-xl mb-8 leading-relaxed max-w-lg">
               Authorized distributor of genuine heavy-duty truck parts. Engines, gearboxes, and components for Mack, Volvo, DAF, and more.
             </p>
-            <div className="flex flex-wrap gap-4">
+            <div className="flex gap-4 justify-center">
               <Link href="/products">
-                <Button size="lg" className="bg-pure-green hover:bg-pure-green-hover text-white px-8 rounded-xl text-lg font-semibold group">
+                <Button size="lg" className="bg-pure-green hover:bg-pure-green-hover text-white px-4 md:px-8 rounded-xl text-lg font-semibold group">
                   Shop Now
                   <ChevronRight className="ml-2 w-5 h-5 transition-transform group-hover:translate-x-1" />
                 </Button>
               </Link>
               <Link href="/categories">
-                <Button size="lg" variant="outline" className="px-8 rounded-xl text-lg font-semibold border-border bg-background/50 backdrop-blur-sm">
+                <Button size="lg" variant="outline" className="px-4 md:px-8 rounded-xl text-lg font-semibold border-border bg-background/50 backdrop-blur-sm">
                   Explore Brands
                 </Button>
               </Link>
@@ -100,10 +100,10 @@ export default function Home() {
 
       {/* Categories Grid */}
       <section className="container mx-auto px-4">
-        <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-4">
+        <div className="flex md:flex-row justify-between items-end mb-12 gap-4">
           <div>
             <span className="text-pure-green font-bold text-sm uppercase tracking-widest block mb-2">Inventory</span>
-            <h2 className="text-4xl font-bold">Shop by Brand</h2>
+            <h2 className="text-xl md:text-4xl font-bold">Shop by Brand</h2>
           </div>
           <Link href="/categories" className="text-pure-green hover:underline flex items-center gap-1 font-semibold">
             View All Categories <ChevronRight className="w-4 h-4" />
@@ -201,7 +201,7 @@ export default function Home() {
       {/* Testimonials */}
       <section className="container mx-auto px-4">
         <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold mb-4">What Our Clients Say</h2>
+          <h2 className="text-xl md:text-3xl font-bold mb-4">What Our Customers Say</h2>
           <div className="w-24 h-1 bg-pure-green mx-auto rounded-full" />
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -252,7 +252,7 @@ export default function Home() {
               Join 2,000+ logistics companies that rely on Emisco for premium truck maintenance.
             </p>
             <Link href="/products">
-              <Button size="lg" className="bg-pure-green hover:bg-pure-green-hover text-white px-12 py-8 rounded-2xl text-xl font-bold group shadow-2xl shadow-pure-green/40">
+              <Button size="lg" className="bg-pure-green hover:bg-pure-green-hover text-white px-3 py-7 md:px-6 rounded-2xl text-xl font-bold group shadow-2xl shadow-pure-green/40">
                 Start Shopping Today
                 <ShoppingCart className="ml-3 w-6 h-6 group-hover:rotate-12 transition-transform" />
               </Button>

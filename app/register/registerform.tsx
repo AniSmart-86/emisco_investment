@@ -61,7 +61,7 @@ export default function RegisterForm({
         animate={{ opacity: 1, y: 0 }}
         className="max-w-md w-full"
       >
-        <div className="bg-card border border-border/50 rounded-[3rem] p-8 md:p-12 shadow-2xl relative overflow-hidden">
+        <div className="bg-card border border-border/50 rounded-[3rem] p-2 md:p-12 shadow-2xl relative overflow-hidden">
           <div className="absolute top-0 right-0 w-32 h-32 bg-pure-green/5 rounded-full blur-3xl" />
 
           <div className="text-center mb-10">

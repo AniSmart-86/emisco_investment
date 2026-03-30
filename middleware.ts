@@ -17,7 +17,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
-  // 🚫 Not logged in
+  // Not logged in
   if (!user) {
     if (pathname.startsWith('/admin') || pathname.startsWith('/dashboard') || pathname.startsWith('/checkout')) {
       const loginUrl = new URL('/login', request.url)

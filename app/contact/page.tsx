@@ -9,7 +9,7 @@ export default function ContactPage() {
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-20">
             <span className="text-pure-green font-bold text-sm uppercase tracking-[0.3em] mb-4 block">Get In Touch</span>
-            <h1 className="text-5xl md:text-7xl font-bold mb-8">Contact Our Experts</h1>
+            <h1 className="text-3xl md:text-7xl font-bold mb-8">Contact Our Experts</h1>
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto italic">
               Whether you need a rare part or technical advice, our team at Kirikiri Road is ready to assist you.
             </p>
@@ -47,8 +47,8 @@ export default function ContactPage() {
 
           {/* Form Section */}
           <div className="lg:col-span-2">
-            <div className="bg-card border border-border p-12 rounded-[3rem] shadow-2xl relative">
-               <h2 className="text-3xl font-bold mb-8 flex items-center gap-3">
+            <div className="bg-card border border-border p-3 md:p-8 rounded-[3rem] shadow-2xl relative">
+               <h2 className="text-2xl font-bold mb-8 flex items-center justify-center gap-3">
                  Send a Message <MessageSquare className="text-pure-green w-6 h-6" />
                </h2>
                <form className="grid grid-cols-1 md:grid-cols-2 gap-6" onSubmit={(e) => {

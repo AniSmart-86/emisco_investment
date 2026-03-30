@@ -19,8 +19,10 @@ import {
   TrendingUp,
   Truck,
   Image as ImageIcon,
-  Upload
+  Upload,
+  MoreVertical
 } from 'lucide-react';
+
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -30,12 +32,14 @@ import { toast } from 'sonner';
 import { Product, Order, DashboardData } from '@/lib/types';
 import axios from 'axios';
 import { api } from '@/lib/api';
+import { DeliveryStatus } from '@/lib/generated/prisma/enums';
 
 export default function AdminDashboard() {
   const { user, logout } = useAuthStore();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [users, setUsers] = useState<User[]>([]);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // States for backend data
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
@@ -43,6 +47,9 @@ export default function AdminDashboard() {
   const [products, setProducts] = useState<Product[]>([]);
   const [newProduct, setNewProduct] = useState({ name: '', price: '', oldPrice: '', stock: '', category: '', description: '', image: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [activeProductMenu, setActiveProductMenu] = useState<string | null>(null);
+  const [productMenu, setProductMenu] = useState(false);
+    // const [editProduct, setEditProduct] = useState<Product[] | null>(null);
 
   useEffect(() => {
     if (activeTab === 'dashboard') {
@@ -50,12 +57,55 @@ export default function AdminDashboard() {
       api.get('/admin/orders').then(res => setOrders(res.data.orders.slice(0, 5))).catch(console.error);
     } else if (activeTab === 'products') {
       api.get('/products').then(res => setProducts(res.data)).catch(console.error);
+    } else if (activeTab === 'users') {
+      api.get('/admin/users').then(res => setUsers(res.data)).catch(console.error);
+     
     } else if (activeTab === 'orders') {
       api.get('/admin/orders').then(res => setOrders(res.data.orders)).catch(console.error);
     }
   }, [activeTab]);
 
+//  console.log(users)
 
+type User = {
+  id: string;
+  name: string;
+  email: string;
+  role: 'USER' | 'ADMIN';
+};
+
+// type DeliveryStatus =
+//   | 'PENDING'
+//   | 'PROCESSING'
+//   | 'SHIPPED'
+//   | 'OUT_FOR_DELIVERY'
+//   | 'DELIVERED';
+
+
+
+ const deleteUser = async (id: string) => {
+    await api.delete(`/admin/users/${id}`);
+    setUsers(prev => prev.filter(u => u.id !== id));
+    toast.success('User deleted');
+  };
+
+  const deleteProduct = async (id: string) => {
+    await api.delete(`/admin/products/${id}`);
+    setProducts(prev => prev.filter(p => p.id !== id));
+    toast.success('Product deleted');
+  };
+
+  const updateOrderStatus = async (id: string, status: DeliveryStatus) => {
+    await api.put(`/admin/orders/${id}/status`, { status });
+
+    setOrders(prev =>
+      prev.map(o =>
+        o.id === id ? { ...o, deliveryStatus: status } : o
+      )
+    );
+
+    toast.success('Status updated');
+  };
 
 
 
@@ -114,8 +164,8 @@ export default function AdminDashboard() {
   };
 
 
-  const handleLogout = async()=>{
-   await logout();
+  const handleLogout = async () => {
+    await logout();
     router.push("/")
   }
 
@@ -135,7 +185,7 @@ export default function AdminDashboard() {
         <Button
           variant="ghost"
           size="icon"
-          className="fixed top-15 left-4 z-50 lg:hidden bg-dark-green"
+          className="fixed top-15 left-0 p-4 z-50 lg:hidden bg-dark-green"
           onClick={() => setIsSidebarOpen(true)}
         >
           <Menu className="w-12 h-12" />
@@ -162,7 +212,7 @@ export default function AdminDashboard() {
               {navItems.map((item) => (
                 <button
                   key={item.id}
-                  onClick={() => setActiveTab(item.id)}
+                  onClick={() => {setActiveTab(item.id), setIsSidebarOpen(false)}}
                   className={`w-full flex items-center gap-4 p-4 rounded-2xl transition-all font-semibold ${activeTab === item.id ? 'bg-pure-green text-white shadow-xl shadow-pure-green/20' : 'hover:bg-emerald-800 text-emerald-100/60'
                     }`}
                 >
@@ -186,11 +236,12 @@ export default function AdminDashboard() {
           <div className="max-w-7xl mx-auto space-y-12">
             <div className="flex justify-between items-end">
               <div>
-                <h1 className="text-4xl font-bold mb-4">Welcome {user?.name}</h1>
+                
                 <h2 className="text-3xl font-bold mb-2">
                   {navItems.find(i => i.id === activeTab)?.label}
                 </h2>
-                <p className="text-muted-foreground italic">Administrative Overview • March 2026</p>
+                <p className="text-muted-foreground italic">Welcome {user?.name}</p>
+                <p className="text-muted-foreground italic">Administrative Overview</p>
               </div>
               <div className="hidden sm:block">
                 <span className="text-xs font-bold text-pure-green bg-pure-green/10 px-4 py-2 rounded-full uppercase tracking-widest border border-pure-green/20">
@@ -293,15 +344,15 @@ export default function AdminDashboard() {
 
             {activeTab === 'products' && (
               <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-8">
-                <div className="flex justify-between items-center">
-                  <h3 className="text-2xl font-bold">Inventory Management</h3>
+                <div className="flex justify-between items-center ">
+                  <h3 className="text-sm md:text-xl font-bold">Inventory Management</h3>
                   <Button onClick={() => setActiveTab('add-product')} className="bg-pure-green hover:bg-pure-green-hover text-white rounded-xl font-bold gap-2">
-                    <Plus className="w-4 h-4" /> New Product
+                    <Plus className="w-4 h-4" /> Add Product
                   </Button>
                 </div>
-                <Card className="border-border/50 bg-card rounded-3xl overflow-hidden p-8 shadow-xl">
-                  <Table>
-                    <TableHeader>
+                <Card className="border-border/50 bg-card rounded-3xl p-2 overflow-hidden shadow-xl">
+                  <Table >
+                    <TableHeader className='px-4'>
                       <TableRow className="border-border">
                         <TableHead className="font-bold">Part Name</TableHead>
                         <TableHead className="font-bold">Category</TableHead>
@@ -310,9 +361,9 @@ export default function AdminDashboard() {
                         <TableHead className="font-bold text-right">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
-                    <TableBody>
+                    <TableBody >
                       {products.map((prod) => (
-                        <TableRow key={prod.id} className="border-border hover:bg-muted/30">
+                        <TableRow key={prod.id} className="border-border hover:bg-muted/30 px-4">
                           <TableCell className="font-bold">{prod.name}</TableCell>
                           <TableCell className="text-xs font-bold text-pure-green uppercase tracking-widest">{prod.category}</TableCell>
                           <TableCell className="font-bold">{prod.price}</TableCell>
@@ -321,8 +372,27 @@ export default function AdminDashboard() {
                               {prod.stock} Units
                             </span>
                           </TableCell>
-                          <TableCell className="text-right">
-                            <Button variant="ghost" size="sm" className="font-bold text-xs uppercase tracking-widest">Edit</Button>
+                          <TableCell className="text-right relative">
+                            <div className="relative inline-block">
+                            {!productMenu &&(
+                            
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() =>{ setActiveProductMenu(prod.id), setProductMenu(true), toast.success("coming soon...") }}
+                              >
+                                <MoreVertical />
+                              </Button>
+                            )}
+
+                              {activeProductMenu === prod.id && (
+                          <div  className="absolute -right-10 bottom-0 mt-2 w-32 bg-white dark:bg-black border rounded-xl shadow-lg z-50">
+                            <button onClick={()=> {setProductMenu(false)}} className="block w-full text-left px-4 py-2 hover:bg-muted">Edit</button>
+                            <button onClick={() =>{ deleteProduct(prod.id), setProductMenu(false)}} className="block w-full text-left px-4 py-2 text-red-500 hover:bg-muted">Delete</button>
+                          </div>
+                        )}
+                          
+                            </div>
                           </TableCell>
                         </TableRow>
                       ))}
@@ -334,21 +404,22 @@ export default function AdminDashboard() {
 
             {activeTab === 'add-product' && (
               <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="max-w-2xl">
-                <Card className="border-border/50 bg-card rounded-[2.5rem] p-12 shadow-2xl">
-                  <h3 className="text-2xl font-bold mb-8">Register New Part</h3>
+                <Card className="border-border/50 bg-card rounded-[2.5rem] p-3 md:p-8 shadow-2xl">
+                  <h3 className="text-2xl font-bold mb-8 text-center">Add New Part</h3>
                   <form className="space-y-6" onSubmit={async (e) => {
                     e.preventDefault();
                     setIsSubmitting(true);
                     try {
+                    
+                        const imageUrl = await uploadImage();
+                        await api.post('/admin/products', {
+                          ...newProduct,
+                          image: imageUrl,
+                          price: parseFloat(newProduct.price),
+                          oldPrice: newProduct.oldPrice ? parseFloat(newProduct.oldPrice) : null,
+                          stock: parseInt(newProduct.stock, 10)
+                        });
 
-                      const imageUrl = await uploadImage();
-                      await api.post('/admin/products', {
-                        ...newProduct,
-                        image: imageUrl,
-                        price: parseFloat(newProduct.price),
-                        oldPrice: newProduct.oldPrice ? parseFloat(newProduct.oldPrice) : null,
-                        stock: parseInt(newProduct.stock, 10)
-                      });
                       toast.success('Product created successfully');
                       setNewProduct({ name: '', price: '', oldPrice: '', stock: '', category: '', description: '', image: '' });
                       setSelectedFile(null);
@@ -449,8 +520,78 @@ export default function AdminDashboard() {
               </motion.div>
             )}
 
-            {/* placeholders for other tabs */}
-            {(activeTab === 'users' || activeTab === 'orders' || activeTab === 'analytics') && (
+            {/* USERS */}
+          {activeTab === 'users' && (
+            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="max-w-2xl">
+                <Card className="border-border/50 bg-card rounded-[2.5rem] p-3 md:p-12 shadow-2xl">
+           
+
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Role</TableHead>
+                    <TableHead />
+                  </TableRow>
+                </TableHeader>
+
+                <TableBody>
+                  {users?.map(u=> (
+                    <TableRow key={u.id}>
+                      <TableCell>{u.name}</TableCell>
+                      <TableCell>{u.email}</TableCell>
+                      <TableCell>{u.role}</TableCell>
+
+                      <TableCell className="text-right">
+                        <Button size="sm" variant="destructive" onClick={() => deleteUser(u.id)}>
+                          Delete
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </Card>
+            </motion.div>
+          )}
+
+             {/* ORDERS */}
+          {activeTab === 'orders' && (
+           <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="max-w-2xl">
+              <Card className="border-border/50 bg-card rounded-[2.5rem] p-12 shadow-2xl">
+              <Table>
+                <TableBody>
+                  {orders.map(o => (
+                    <TableRow key={o.id}>
+                      <TableCell>{o.id}</TableCell>
+
+                      <TableCell>
+                        <select
+                          value={o.deliveryStatus}
+                          onChange={(e) =>
+                            updateOrderStatus(
+                              o.id,
+                              e.target.value as DeliveryStatus
+                            )
+                          }
+                        >
+                          <option value="PROCESSING">Processing</option>
+                          <option value="SHIPPED">Shipped</option>
+                          <option value="OUT_FOR_DELIVERY">Out</option>
+                          <option value="DELIVERED">Delivered</option>
+                        </select>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </Card>
+             </motion.div>
+          )}
+
+          
+            {(activeTab === 'analytics') && (
               <div className="py-32 text-center text-muted-foreground italic border-2 border-dashed border-border rounded-[3rem]">
                 The full {activeTab} view is being optimized for large datasets.
               </div>
