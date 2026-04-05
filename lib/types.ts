@@ -7,6 +7,7 @@ export interface Product {
   category: string;
   image: string;
   stock: number;
+  isActive: boolean;
   createdAt: string | Date;
   updatedAt: string | Date;
 }
@@ -39,6 +40,8 @@ export interface OrderItem {
   productId: string;
   quantity: number;
   price: number;
+  productName?: string;
+  productImage?: string;
   product?: Product;
 }
 

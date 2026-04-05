@@ -15,6 +15,7 @@ export default function DashboardPage() {
   const { orders, isLoading, fetchOrders } = useOrderStore();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState('orders');
+  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) {
@@ -24,6 +25,11 @@ export default function DashboardPage() {
     }
   }, [user, router, fetchOrders]);
 
+  // Get the order currently selected for tracking, or the most recent one if none selected
+  const selectedOrder = selectedOrderId 
+    ? orders.find(o => o.id === selectedOrderId) 
+    : orders[0];
+
   if (!user) return null;
 
   const handleLogout = async () => {
@@ -31,6 +37,24 @@ export default function DashboardPage() {
     router.push('/');
   };
 
+  const getStatusSteps = (status: string) => {
+    const steps = [
+      { id: 'PENDING', label: 'Order Placed', done: true },
+      { id: 'PROCESSING', label: 'Processing', done: false },
+      { id: 'SHIPPED', label: 'Shipped', done: false },
+      { id: 'OUT_FOR_DELIVERY', label: 'Out for Delivery', done: false },
+      { id: 'DELIVERED', label: 'Delivered', done: false },
+    ];
+
+    const statusOrder = ['PENDING', 'PROCESSING', 'SHIPPED', 'OUT_FOR_DELIVERY', 'DELIVERED'];
+    const currentIndex = statusOrder.indexOf(status);
+
+    return steps.map((step, index) => ({
+      ...step,
+      done: index <= currentIndex,
+      current: index === currentIndex
+    }));
+  };
 
   return (
     <div className="container mx-auto px-4 py-12">
@@ -80,7 +104,11 @@ export default function DashboardPage() {
         <main className="grow space-y-8">
           {activeTab === 'orders' && (
             <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
-              <h2 className="text-3xl font-bold mb-8">Purchase History</h2>
+              <div className="flex justify-between items-end mb-8">
+                <h2 className="text-3xl font-bold">Purchase History</h2>
+                <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">{orders.length} Total Orders</p>
+              </div>
+              
               {isLoading ? (
                 <div className="flex justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-pure-green" /></div>
               ) : orders.length === 0 ? (
@@ -90,9 +118,16 @@ export default function DashboardPage() {
                   {orders.map((order) => (
                     <Card key={order.id} className="border-border/50 bg-card/50 backdrop-blur-sm rounded-3xl overflow-hidden group hover:border-pure-green/50 transition-colors">
                       <CardHeader className="flex flex-row items-center justify-between p-6 bg-muted/30">
-                        <div>
-                           <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block mb-1">Order #</span>
-                           <CardTitle className="text-lg">{order.id.slice(0, 8).toUpperCase()}</CardTitle>
+                        <div className="flex items-center gap-4">
+                           <div>
+                              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block mb-1">Order #</span>
+                              <CardTitle className="text-lg">{order.id.slice(0, 8).toUpperCase()}...</CardTitle>
+                           </div>
+                           <div className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                              order.paymentStatus === 'PAID' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-amber-500/10 text-amber-500'
+                           }`}>
+                              {order.paymentStatus}
+                           </div>
                         </div>
                         <div className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest ${
                           order.deliveryStatus === 'DELIVERED' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-pure-green/10 text-pure-green'
@@ -101,7 +136,7 @@ export default function DashboardPage() {
                         </div>
                       </CardHeader>
                       <CardContent className="p-6">
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                      <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
                         <div>
                           <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block mb-1">Date</span>
                           <span className="text-sm font-semibold">{new Date(order.createdAt).toLocaleDateString()}</span>
@@ -114,10 +149,21 @@ export default function DashboardPage() {
                           <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block mb-1">Total</span>
                           <span className="text-sm font-bold">₦{order.totalAmount.toLocaleString()}</span>
                         </div>
-                        <div className="flex justify-end items-center">
+                        <div className="flex justify-end items-center gap-2 md:col-span-2">
+                           <Button 
+                              variant="outline" 
+                              size="sm"
+                              className="rounded-xl font-bold text-[10px] uppercase border-border/50 hover:bg-pure-green hover:text-white transition-all"
+                              onClick={() => {
+                                setSelectedOrderId(order.id);
+                                setActiveTab('tracking');
+                              }}
+                           >
+                              Track
+                           </Button>
                            <Link href={`/orders/${order.id}`}>
-                             <Button variant="ghost" className="text-pure-green font-bold group">
-                               Order Details <ChevronRight className="ml-1 w-4 h-4 transition-transform group-hover:translate-x-1" />
+                             <Button variant="ghost" size="sm" className="text-pure-green font-bold group text-[10px] uppercase">
+                                Details <ChevronRight className="ml-1 w-3 h-3 transition-transform group-hover:translate-x-1" />
                              </Button>
                            </Link>
                         </div>
@@ -133,41 +179,57 @@ export default function DashboardPage() {
           {activeTab === 'tracking' && (
              <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
                 <h2 className="text-3xl font-bold mb-8">Shipment Tracking</h2>
+                {!selectedOrder ? (
+                   <Card className="border-border/50 bg-card/50 backdrop-blur-sm rounded-3xl p-12 text-center">
+                      <Truck className="w-12 h-12 text-muted-foreground/20 mx-auto mb-4" />
+                      <p className="text-muted-foreground italic">Select an order from your history to track progress.</p>
+                      <Button onClick={() => setActiveTab('orders')} className="mt-6 bg-pure-green text-white rounded-xl font-bold">Go to Orders</Button>
+                   </Card>
+                ) : (
                 <Card className="border-border/50 bg-card/50 backdrop-blur-sm rounded-3xl p-8">
                   <div className="flex flex-col md:flex-row gap-8 items-start mb-12">
                      <div className="w-12 h-12 bg-pure-green rounded-xl flex items-center justify-center shrink-0">
                         <Truck className="text-white w-6 h-6" />
                      </div>
-                     <div>
-                        <h3 className="text-xl font-bold mb-2">Order EMS-123456</h3>
-                        <p className="text-muted-foreground text-sm italic">In Transit - Expected delivery by March 27</p>
+                     <div className="grow">
+                        <div className="flex justify-between items-start">
+                           <div>
+                              <h3 className="text-xl font-bold mb-1 uppercase tracking-tight">Order #{selectedOrder.id.slice(0, 8)}</h3>
+                              <p className="text-muted-foreground text-sm italic">
+                                 {selectedOrder.deliveryStatus === 'DELIVERED' ? 'Arrived at destination' : 'Your shipment is in progress'}
+                              </p>
+                           </div>
+                           <div className="text-right">
+                              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block mb-1">Status</span>
+                              <span className="text-sm font-bold text-pure-green">{selectedOrder.deliveryStatus}</span>
+                           </div>
+                        </div>
                      </div>
                   </div>
                   
                   {/* Stepper */}
                   <div className="space-y-12 ml-6 border-l-2 border-border pl-10 relative">
-                     {[
-                       { status: 'Processed', date: 'Mar 24', current: false, done: true },
-                       { status: 'Shipped', date: 'Mar 25', current: true, done: true },
-                       { status: 'Out for Delivery', date: 'Expected today', current: false, done: false },
-                       { status: 'Delivered', date: '-', current: false, done: false },
-                     ].map((step, i) => (
+                     {getStatusSteps(selectedOrder.deliveryStatus).map((step, i) => (
                        <div key={i} className="relative">
-                         <div className={`absolute -left-[3.1rem] top-0 w-8 h-8 rounded-full border-4 border-background flex items-center justify-center ${
+                         <div className={`absolute -left-[3.1rem] top-0 w-8 h-8 rounded-full border-4 border-background flex items-center justify-center transition-colors duration-500 ${
                            step.done ? 'bg-pure-green' : 'bg-muted'
                          }`}>
-                           <div className={`w-2 h-2 rounded-full ${step.current ? 'bg-white animate-ping' : ''}`} />
+                           {step.done && <div className={`w-2 h-2 rounded-full bg-white ${step.current ? 'animate-ping' : ''}`} />}
                          </div>
-                         <div className={step.done ? 'text-foreground' : 'text-muted-foreground'}>
-                            <h4 className="font-bold">{step.status}</h4>
-                            <p className="text-xs mt-1">{step.date}</p>
+                         <div className={`transition-opacity duration-300 ${step.done ? 'opacity-100' : 'opacity-40'}`}>
+                            <h4 className="font-bold">{step.label}</h4>
+                            <p className="text-xs mt-1">
+                               {step.current ? 'Most recent update' : step.done ? 'Completed' : 'Pending'}
+                            </p>
                          </div>
                        </div>
                      ))}
                   </div>
                 </Card>
+                )}
              </motion.div>
           )}
+
 
           {activeTab === 'profile' && (
              <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>

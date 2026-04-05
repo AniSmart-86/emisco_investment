@@ -9,7 +9,9 @@ export async function GET(request: Request) {
     const category = searchParams.get('category');
     const search = searchParams.get('search');
 
-    const where: Prisma.ProductWhereInput = {};
+    const where: Prisma.ProductWhereInput = {
+      isActive: true,
+    };
 
     if (category && category !== 'All') {
       where.category = { equals: category, mode: 'insensitive' };
@@ -26,6 +28,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json(products);
   } catch (error) {
+    console.error('Fetch products error:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

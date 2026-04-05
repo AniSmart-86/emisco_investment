@@ -8,10 +8,10 @@ import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function CartPage() {
-  const { items, updateQuantity, removeItem, clearCart, getTotal, getDeliveryFee } = useCartStore();
+  const { items, updateQuantity, removeItem, clearCart, getTotal } = useCartStore();
   const subtotal = getTotal();
-  const deliveryFee = getDeliveryFee();
-  const total = subtotal + deliveryFee;
+  // const deliveryFee = getDeliveryFee();
+  const total = subtotal 
 
   if (items.length === 0) {
     return (
@@ -125,10 +125,7 @@ export default function CartPage() {
                 <span>Subtotal</span>
                 <span>₦{subtotal.toLocaleString()}</span>
               </div>
-              <div className="flex justify-between text-emerald-100/70">
-                <span>Delivery Fee</span>
-                <span className="text-pure-green font-bold">₦{deliveryFee.toLocaleString()}</span>
-              </div>
+              
               <div className="flex justify-between text-emerald-100/70">
                 <span>Tax</span>
                 <span>₦0.00</span>

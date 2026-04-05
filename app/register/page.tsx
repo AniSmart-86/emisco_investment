@@ -1,10 +1,11 @@
-import RegisterForm from "./registerform";
+import RegisterForm from "../../components/registerform";
 
 
-export default function Page({
+export default async function Page({
   searchParams,
 }: {
-  searchParams: { callbackUrl?: string };
+  searchParams: Promise<{ callbackUrl?: string }>;
 }) {
-  return <RegisterForm callbackUrl={searchParams.callbackUrl} />;
-}
+  const { callbackUrl } = await searchParams;
+  return <RegisterForm callbackUrl={callbackUrl} />;
+}

@@ -1,10 +1,11 @@
-import LoginForm from "./loginForm";
+import LoginForm from "../../components/loginForm";
 
 
-export default function Page({
+export default async function Page({
   searchParams,
 }: {
-  searchParams: { callbackUrl?: string };
+  searchParams: Promise<{ callbackUrl?: string }>;
 }) {
-  return <LoginForm callbackUrl={searchParams.callbackUrl} />;
+  const { callbackUrl } = await searchParams;
+  return <LoginForm callbackUrl={callbackUrl} />;
 }

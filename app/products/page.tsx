@@ -1,10 +1,11 @@
 import ProductsPage from "./productPage";
 
 
-export default function Page({
+export default async function Page({
   searchParams,
 }: {
-  searchParams: { category?: string };
+  searchParams: Promise<{ category?: string }>;
 }) {
-  return <ProductsPage initialCategory={searchParams.category} />;
+  const { category } = await searchParams;
+  return <ProductsPage initialCategory={category} />;
 }

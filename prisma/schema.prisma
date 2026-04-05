@@ -37,6 +37,7 @@ model Product {
   category    String
   image       String
   stock       Int
+  isActive    Boolean  @default(true) // For soft-deletion
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   orderItems  OrderItem[]
@@ -48,6 +49,7 @@ model Order {
   totalAmount    Float
   paymentStatus  PaymentStatus  @default(PENDING)
   deliveryStatus DeliveryStatus @default(PENDING)
+  reference      String?        @unique
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
 
@@ -70,11 +72,13 @@ enum DeliveryStatus {
 }
 
 model OrderItem {
-  id        String @id @default(uuid())
-  orderId   String
-  productId String
-  quantity  Int
-  price     Float
+  id           String @id @default(uuid())
+  orderId      String
+  productId    String
+  quantity     Int
+  price        Float
+  productName  String? // Snapshot of product name at purchase
+  productImage String? // Snapshot of product image at purchase
 
   order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
   product Product @relation(fields: [productId], references: [id])

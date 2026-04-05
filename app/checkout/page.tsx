@@ -11,7 +11,7 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/lib/store/authStore';
-import axios from 'axios';
+
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -19,8 +19,14 @@ export default function CheckoutPage() {
   const { items, getTotal, getDeliveryFee, clearCart } = useCartStore();
   const subtotal = getTotal();
   const deliveryFee = getDeliveryFee();
-  const total = subtotal + deliveryFee;
 
+
+
+
+  useEffect(()=>{
+localStorage.removeItem("paymentInfo");
+  },[]);
+  
   const [form, setForm] = useState({
     name: '',
     email: '',
@@ -29,61 +35,93 @@ export default function CheckoutPage() {
     city: '',
     state: '',
   });
-
+  
   const [deliveryMethod, setDeliveryMethod] = useState('');
   const [loading, setLoading] = useState(false);
-
+  
   // Delivery Suggestion Logic
   const showDeliverySuggestion = form.state.toLowerCase() !== 'lagos' && form.state !== '';
   const transportCompanies = ['Okeyson Motors', 'GIG Logistics', 'Ifesinachi Motors'];
+
+
+
+     const finalTotal =   showDeliverySuggestion ? subtotal + deliveryFee : subtotal;
+
+  
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handlePlaceOrder = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!form.name || !form.email || !form.address) {
-      toast.error('Please fill in all required fields');
-      return;
-    }
-    if (!user) {
-      toast.error('You must be logged in to place an order.');
-      router.push('/login');
-      return;
+const handlePlaceOrder = async (e: React.FormEvent) => {
+  e.preventDefault();
+
+  if (!form.name || !form.email || !form.address) {
+    toast.error('Please fill in all required fields');
+    return;
+  }
+
+  if (!user) {
+    toast.error('You must be logged in');
+    router.push('/login');
+    return;
+  }
+
+  setLoading(true);
+
+  try {
+
+    const orderItems = items.map(item => ({
+      productId: item.id,
+      quantity: item.quantity,
+    price: item.price,
+    }));
+
+    const orderRes = await api.post('/orders', {
+      items: orderItems,
+      totalAmount: finalTotal,
+    });
+
+    const order = orderRes.data.order;
+    
+    // ✅ 2. INITIALIZE PAYMENT WITH ORDER ID
+    const paystackRes = await fetch('/api/payments/initialize', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: user.email,
+        amount: finalTotal * 100,
+        orderId: order.id, 
+      }),
+    });
+
+    const paystackData = await paystackRes.json();
+
+    if (!paystackRes.ok) {
+      throw new Error('Payment initialization failed');
     }
 
-    setLoading(true);
-    try {
-      const orderItems = items.map(item => ({
-        productId: item.id,
-        quantity: item.quantity,
-      }));
+    // ✅ 3. SAVE FOR CLIENT CHECK (OPTIONAL)
+    localStorage.setItem('paymentInfo', JSON.stringify({
+      amount: finalTotal,
+      email: user.email,
+      orderId: order.id,
+    }));
 
-      await api.post('/orders', {
-        items: orderItems,
-        totalAmount: total, // Passing the total with delivery fee
-      });
-      
-      clearCart();
-      router.push('/order-confirmation');
-      toast.success('Order placed successfully!');
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        toast.error(error.response?.data?.error || 'Failed to place order.');
-      } else {
-        toast.error('An unexpected error occurred.');
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
 
-  useEffect(() => {
-    if (items.length === 0) {
-      router.push('/cart');
-    }
-  }, [items.length, router]);
+    clearCart();
+   
+    window.location.href = paystackData.data.authorization_url;
+
+  } catch (error) {
+    console.error(error);
+    toast.error('Something went wrong');
+  } finally {
+    setLoading(false);
+  }
+};
+
+
 
   if (items.length === 0) {
     return null;
@@ -241,7 +279,7 @@ export default function CheckoutPage() {
                 disabled={loading}
                 className="w-full bg-pure-green hover:bg-pure-green-hover text-white py-8 rounded-2xl text-xl font-bold shadow-2xl shadow-pure-green/20"
               >
-                {loading ? 'Processing...' : `Pay ₦${total.toLocaleString()}`}
+                {loading ? 'Processing...' : `Pay ₦${finalTotal.toLocaleString()}`}
               </Button>
             </div>
           </section>
@@ -271,13 +309,20 @@ export default function CheckoutPage() {
                  <span>Subtotal</span>
                  <span className="text-foreground font-bold">₦{subtotal.toLocaleString()}</span>
                </div>
-               <div className="flex justify-between text-muted-foreground">
+               {showDeliverySuggestion ? (
+                <div className="flex justify-between text-muted-foreground">
                  <span>Delivery Fee</span>
                  <span className="text-pure-green font-bold">₦{deliveryFee.toLocaleString()}</span>
                </div>
+               ): (
+                <div className="flex justify-between text-muted-foreground">
+                 <span>Delivery Fee</span>
+                 <span className="text-pure-green font-bold">Free</span>
+               </div>
+               )}
                <div className="flex justify-between items-end pt-4">
                  <span className="text-lg font-bold">Grand Total</span>
-                 <span className="text-3xl font-bold text-pure-green">₦{total.toLocaleString()}</span>
+                 <span className="text-3xl font-bold text-pure-green">₦{finalTotal.toLocaleString()}</span>
                </div>
              </div>
              

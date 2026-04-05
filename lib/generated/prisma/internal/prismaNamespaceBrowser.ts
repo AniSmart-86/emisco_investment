@@ -94,6 +94,7 @@ export const ProductScalarFieldEnum = {
   category: 'category',
   image: 'image',
   stock: 'stock',
+  isActive: 'isActive',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -107,6 +108,7 @@ export const OrderScalarFieldEnum = {
   totalAmount: 'totalAmount',
   paymentStatus: 'paymentStatus',
   deliveryStatus: 'deliveryStatus',
+  reference: 'reference',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -119,7 +121,9 @@ export const OrderItemScalarFieldEnum = {
   orderId: 'orderId',
   productId: 'productId',
   quantity: 'quantity',
-  price: 'price'
+  price: 'price',
+  productName: 'productName',
+  productImage: 'productImage'
 } as const
 
 export type OrderItemScalarFieldEnum = (typeof OrderItemScalarFieldEnum)[keyof typeof OrderItemScalarFieldEnum]

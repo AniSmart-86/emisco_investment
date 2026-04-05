@@ -49,21 +49,29 @@ export default function AdminDashboard() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeProductMenu, setActiveProductMenu] = useState<string | null>(null);
   const [productMenu, setProductMenu] = useState(false);
-    // const [editProduct, setEditProduct] = useState<Product[] | null>(null);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
   useEffect(() => {
     if (activeTab === 'dashboard') {
       api.get('/admin/dashboard').then(res => setDashboardData(res.data)).catch(console.error);
       api.get('/admin/orders').then(res => setOrders(res.data.orders.slice(0, 5))).catch(console.error);
     } else if (activeTab === 'products') {
-      api.get('/products').then(res => setProducts(res.data)).catch(console.error);
+      api.get('/products').then(res => {
+        setProducts(res.data);
+      }).catch(console.error);
+    } else if (activeTab === 'add-product') {
+      // Reset editing mode when manually clicking "Add Product"
+      if (!editingProduct) {
+        setNewProduct({ name: '', price: '', oldPrice: '', stock: '', category: '', description: '', image: '' });
+        setImagePreview(null);
+      }
     } else if (activeTab === 'users') {
       api.get('/admin/users').then(res => setUsers(res.data)).catch(console.error);
      
     } else if (activeTab === 'orders') {
       api.get('/admin/orders').then(res => setOrders(res.data.orders)).catch(console.error);
     }
-  }, [activeTab]);
+  }, [activeTab, editingProduct]);
 
 //  console.log(users)
 
@@ -73,7 +81,7 @@ type User = {
   email: string;
   role: 'USER' | 'ADMIN';
 };
-
+                           
 // type DeliveryStatus =
 //   | 'PENDING'
 //   | 'PROCESSING'
@@ -83,19 +91,47 @@ type User = {
 
 
 
- const deleteUser = async (id: string) => {
+  const deleteUser = async (id: string): Promise<void> => {
     await api.delete(`/admin/users/${id}`);
     setUsers(prev => prev.filter(u => u.id !== id));
     toast.success('User deleted');
   };
 
-  const deleteProduct = async (id: string) => {
-    await api.delete(`/admin/products/${id}`);
-    setProducts(prev => prev.filter(p => p.id !== id));
-    toast.success('Product deleted');
+  const deleteProduct = async (id: string): Promise<void> => {
+    if (!confirm('Are you sure you want to delete this product?')) return;
+    try {
+      await api.delete(`/admin/products/${id}`);
+      setProducts(prev => prev.filter(p => p.id !== id));
+      setProductMenu(false);
+      toast.success('Product deleted');
+    } catch (err) {
+      console.error('Delete error:', err);
+      if (axios.isAxiosError(err)) {
+        toast.error(err.response?.data?.error || 'Delete failed');
+      } else {
+        toast.error('An unexpected error occurred');
+      }
+    }
   };
 
-  const updateOrderStatus = async (id: string, status: DeliveryStatus) => {
+  const handleEditProduct = (product: Product) => {
+    setEditingProduct(product);
+    setNewProduct({
+      name: product.name,
+      price: product.price.toString(),
+      oldPrice: product.oldPrice?.toString() || '',
+      stock: product.stock.toString(),
+      category: product.category,
+      description: product.description || '',
+      image: product.image || ''
+    });
+    setImagePreview(product.image || null);
+    setActiveTab('add-product');
+    setProductMenu(false);
+    setActiveProductMenu(null);
+  };
+
+  const updateOrderStatus = async (id: string, status: DeliveryStatus): Promise<void> => {
     await api.put(`/admin/orders/${id}/status`, { status });
 
     setOrders(prev =>
@@ -201,7 +237,7 @@ type User = {
                 <div className="w-10 h-10 bg-pure-green rounded-xl flex items-center justify-center">
                   <Truck className="text-white w-6 h-6" />
                 </div>
-                <span className="font-bold text-xl">EMISCO ADMIN</span>
+                <span className="font-bold text-xl">ADMIN</span>
               </Link>
               <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setIsSidebarOpen(false)}>
                 <X className="w-8 h-8" />
@@ -212,7 +248,14 @@ type User = {
               {navItems.map((item) => (
                 <button
                   key={item.id}
-                  onClick={() => {setActiveTab(item.id), setIsSidebarOpen(false)}}
+                  onClick={() => {
+                    setActiveTab(item.id);
+                    if (item.id === 'add-product') {
+                      setEditingProduct(null);
+                      setNewProduct({ name: '', price: '', oldPrice: '', stock: '', category: '', description: '', image: '' });
+                      setImagePreview(null);
+                    }
+                  }}
                   className={`w-full flex items-center gap-4 p-4 rounded-2xl transition-all font-semibold ${activeTab === item.id ? 'bg-pure-green text-white shadow-xl shadow-pure-green/20' : 'hover:bg-emerald-800 text-emerald-100/60'
                     }`}
                 >
@@ -225,7 +268,7 @@ type User = {
             <div className="pt-8 border-t border-emerald-800">
               <button onClick={handleLogout} className="w-full flex items-center gap-4 p-4 rounded-2xl text-red-300 hover:bg-red-500/10 transition-all font-semibold">
                 <LogOut className="w-5 h-5" />
-                Logout Access
+                Logout
               </button>
             </div>
           </div>
@@ -364,7 +407,12 @@ type User = {
                     <TableBody >
                       {products.map((prod) => (
                         <TableRow key={prod.id} className="border-border hover:bg-muted/30 px-4">
-                          <TableCell className="font-bold">{prod.name}</TableCell>
+                          <TableCell className="font-bold">
+                            {prod.name}
+                            {!prod.isActive && (
+                              <span className="ml-2 px-2 py-0.5 rounded-full bg-red-100 text-red-600 text-[10px] font-bold uppercase tracking-tighter">Archived</span>
+                            )}
+                          </TableCell>
                           <TableCell className="text-xs font-bold text-pure-green uppercase tracking-widest">{prod.category}</TableCell>
                           <TableCell className="font-bold">{prod.price}</TableCell>
                           <TableCell>
@@ -379,18 +427,28 @@ type User = {
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                onClick={() =>{ setActiveProductMenu(prod.id), setProductMenu(true), toast.success("coming soon...") }}
+                                onClick={() =>{ setActiveProductMenu(prod.id)}}
                               >
                                 <MoreVertical />
                               </Button>
                             )}
 
-                              {activeProductMenu === prod.id && (
-                          <div  className="absolute -right-10 bottom-0 mt-2 w-32 bg-white dark:bg-black border rounded-xl shadow-lg z-50">
-                            <button onClick={()=> {setProductMenu(false)}} className="block w-full text-left px-4 py-2 hover:bg-muted">Edit</button>
-                            <button onClick={() =>{ deleteProduct(prod.id), setProductMenu(false)}} className="block w-full text-left px-4 py-2 text-red-500 hover:bg-muted">Delete</button>
-                          </div>
-                        )}
+                                {activeProductMenu === prod.id && (
+                                  <div className="absolute -right-10 bottom-0 mt-2 w-32 bg-white dark:bg-black border rounded-xl shadow-lg z-50 overflow-hidden">
+                                    <button 
+                                      onClick={() => handleEditProduct(prod)} 
+                                      className="block w-full text-left px-4 py-3 text-sm font-semibold hover:bg-muted transition-colors border-b border-border/50"
+                                    >
+                                      Edit
+                                    </button>
+                                    <button 
+                                      onClick={() => deleteProduct(prod.id)} 
+                                      className="block w-full text-left px-4 py-3 text-sm font-semibold text-red-500 hover:bg-red-50/10 transition-colors"
+                                    >
+                                      Delete
+                                    </button>
+                                  </div>
+                                )}
                           
                             </div>
                           </TableCell>
@@ -405,30 +463,55 @@ type User = {
             {activeTab === 'add-product' && (
               <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="max-w-2xl">
                 <Card className="border-border/50 bg-card rounded-[2.5rem] p-3 md:p-8 shadow-2xl">
-                  <h3 className="text-2xl font-bold mb-8 text-center">Add New Part</h3>
+                  <h3 className="text-2xl font-bold mb-8 text-center">
+                    {editingProduct ? 'Update Product' : 'Add New Part'}
+                  </h3>
                   <form className="space-y-6" onSubmit={async (e) => {
                     e.preventDefault();
                     setIsSubmitting(true);
                     try {
-                    
-                        const imageUrl = await uploadImage();
-                        await api.post('/admin/products', {
-                          ...newProduct,
-                          image: imageUrl,
-                          price: parseFloat(newProduct.price),
-                          oldPrice: newProduct.oldPrice ? parseFloat(newProduct.oldPrice) : null,
-                          stock: parseInt(newProduct.stock, 10)
-                        });
+                      let imageUrl = newProduct.image;
+                      if (selectedFile) {
+                        imageUrl = await uploadImage();
+                      }
 
-                      toast.success('Product created successfully');
+                      const productData = {
+                        ...newProduct,
+                        image: imageUrl,
+                        price: parseFloat(newProduct.price),
+                        oldPrice: newProduct.oldPrice ? parseFloat(newProduct.oldPrice) : null,
+                        stock: parseInt(newProduct.stock, 10)
+                      };
+
+                      if (editingProduct) {
+                        // If stock is set to 0 during update, delete it as per request
+                        if (productData.stock <= 0) {
+                          if (confirm('Setting stock to 0 will remove this product from inventory. Proceed?')) {
+                            await api.delete(`/admin/products/${editingProduct.id}`);
+                            toast.success('Product removed due to zero stock');
+                          } else {
+                            setIsSubmitting(false);
+                            return;
+                          }
+                        } else {
+                          await api.put(`/admin/products/${editingProduct.id}`, productData);
+                          toast.success('Product updated successfully');
+                        }
+                      } else {
+                        await api.post('/admin/products', productData);
+                        toast.success('Product created successfully');
+                      }
+
+                      setEditingProduct(null);
                       setNewProduct({ name: '', price: '', oldPrice: '', stock: '', category: '', description: '', image: '' });
                       setSelectedFile(null);
                       setImagePreview(null);
                       setActiveTab('products');
                     } catch (err) {
                       if (axios.isAxiosError(err)) {
-                        toast.error(err.response?.data?.error || 'Failed to create product');
+                        toast.error(err.response?.data?.error || 'Operation failed');
                       } else {
+                        console.error(err);
                         toast.error('An unexpected error occurred.');
                       }
                     } finally {
@@ -513,7 +596,7 @@ type User = {
                       </div>
                     </div>
                     <Button type="submit" disabled={isSubmitting} className="w-full bg-pure-green hover:bg-pure-green-hover text-white py-8 rounded-2xl text-lg font-bold">
-                      {isSubmitting || uploading ? 'Creating...' : 'Add to Inventory'}
+                      {isSubmitting || uploading ? (editingProduct ? 'Updating...' : 'Creating...') : (editingProduct ? 'Save Changes' : 'Add to Inventory')}
                     </Button>
                   </form>
                 </Card>
@@ -556,38 +639,72 @@ type User = {
             </motion.div>
           )}
 
-             {/* ORDERS */}
           {activeTab === 'orders' && (
-           <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="max-w-2xl">
-              <Card className="border-border/50 bg-card rounded-[2.5rem] p-12 shadow-2xl">
-              <Table>
-                <TableBody>
-                  {orders.map(o => (
-                    <TableRow key={o.id}>
-                      <TableCell>{o.id}</TableCell>
-
-                      <TableCell>
-                        <select
-                          value={o.deliveryStatus}
-                          onChange={(e) =>
-                            updateOrderStatus(
-                              o.id,
-                              e.target.value as DeliveryStatus
-                            )
-                          }
-                        >
-                          <option value="PROCESSING">Processing</option>
-                          <option value="SHIPPED">Shipped</option>
-                          <option value="OUT_FOR_DELIVERY">Out</option>
-                          <option value="DELIVERED">Delivered</option>
-                        </select>
-                      </TableCell>
+            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="grow">
+               <Card className="border-border/50 bg-card rounded-[2.5rem] p-8 shadow-2xl overflow-hidden">
+                <div className="flex justify-between items-center mb-8">
+                   <h3 className="text-2xl font-bold">Manage All Orders</h3>
+                   <div className="flex gap-2">
+                      <span className="px-3 py-1 rounded-full bg-muted text-[10px] font-bold uppercase tracking-wider">{orders.length} Total</span>
+                   </div>
+                </div>
+                <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="border-border hover:bg-transparent">
+                      <TableHead className="font-bold">Order Details</TableHead>
+                      <TableHead className="font-bold">Customer</TableHead>
+                      <TableHead className="font-bold">Payment</TableHead>
+                      <TableHead className="font-bold">Amount</TableHead>
+                      <TableHead className="font-bold text-right">Delivery Status</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </Card>
-             </motion.div>
+                  </TableHeader>
+                  <TableBody>
+                    {orders.map((o) => (
+                      <TableRow key={o.id} className="border-border hover:bg-muted/30">
+                        <TableCell className="py-6">
+                           <div className="text-xs font-mono text-muted-foreground mb-1 uppercase">#{o.id.slice(0, 8)}</div>
+                           <div className="text-xs font-semibold">{new Date(o.createdAt).toLocaleDateString()}</div>
+                        </TableCell>
+                        <TableCell>
+                           <div className="font-bold text-sm">{o.user?.name || 'Guest'}</div>
+                           <div className="text-[10px] text-muted-foreground italic">{o.user?.email || 'N/A'}</div>
+                        </TableCell>
+                        <TableCell>
+                          <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                            o.paymentStatus === 'PAID' ? 'bg-emerald-500/10 text-emerald-500' : 
+                            o.paymentStatus === 'FAILED' ? 'bg-red-500/10 text-red-500' : 
+                            'bg-amber-500/10 text-amber-500'
+                          }`}>
+                            {o.paymentStatus}
+                          </span>
+                        </TableCell>
+                        <TableCell className="font-bold">₦{o.totalAmount?.toLocaleString()}</TableCell>
+                        <TableCell className="text-right">
+                          <select
+                            className="bg-muted/50 border-none rounded-xl px-3 py-2 text-xs font-bold focus:ring-2 focus:ring-pure-green/50 cursor-pointer outline-none transition-all"
+                            value={o.deliveryStatus}
+                            onChange={(e) =>
+                              updateOrderStatus(
+                                o.id,
+                                e.target.value as DeliveryStatus
+                              )
+                            }
+                          >
+                            <option value="PENDING">Pending</option>
+                            <option value="PROCESSING">Processing</option>
+                            <option value="SHIPPED">Shipped</option>
+                            <option value="OUT_FOR_DELIVERY">Out for Delivery</option>
+                            <option value="DELIVERED">Delivered</option>
+                          </select>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+                </div>
+              </Card>
+            </motion.div>
           )}
 
           

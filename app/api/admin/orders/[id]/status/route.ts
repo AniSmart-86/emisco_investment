@@ -17,12 +17,13 @@ export async function PUT(
   try {
     const { id } = await params;
     const body = await request.json();
-    const deliveryStatus = statusSchema.parse(body.deliveryStatus);
+    const deliveryStatus = statusSchema.parse(body.status);
 
     const updatedOrder = await prisma.order.update({
       where: { id },
       data: { deliveryStatus },
     });
+
 
     return NextResponse.json({ order: updatedOrder });
   } catch (error) {

@@ -763,6 +763,7 @@ export const ProductScalarFieldEnum = {
   category: 'category',
   image: 'image',
   stock: 'stock',
+  isActive: 'isActive',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -776,6 +777,7 @@ export const OrderScalarFieldEnum = {
   totalAmount: 'totalAmount',
   paymentStatus: 'paymentStatus',
   deliveryStatus: 'deliveryStatus',
+  reference: 'reference',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -788,7 +790,9 @@ export const OrderItemScalarFieldEnum = {
   orderId: 'orderId',
   productId: 'productId',
   quantity: 'quantity',
-  price: 'price'
+  price: 'price',
+  productName: 'productName',
+  productImage: 'productImage'
 } as const
 
 export type OrderItemScalarFieldEnum = (typeof OrderItemScalarFieldEnum)[keyof typeof OrderItemScalarFieldEnum]
@@ -891,6 +895,13 @@ export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'In
  * Reference to a field of type 'Int[]'
  */
 export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int[]'>
+    
+
+
+/**
+ * Reference to a field of type 'Boolean'
+ */
+export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
     
 
 

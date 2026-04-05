@@ -44,12 +44,20 @@ export async function DELETE(
   try {
     const { id } = await params;
 
-    await prisma.product.delete({
+    await prisma.product.update({
       where: { id },
+      data: { isActive: false }
     });
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, message: 'Product archived' });
   } catch (error) {
+    console.error('Delete error:', error);
+    if (error && typeof error === 'object' && 'code' in error && error.code === 'P2003') {
+      return NextResponse.json(
+        { error: 'Cannot delete product because it is associated with existing orders. Try marking it as out of stock instead.' },
+        { status: 400 }
+      );
+    }
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
