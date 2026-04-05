@@ -13,7 +13,7 @@ interface PaymentInfo {
   orderId: string;
 }
 
-export default function OrderConfirmationPage({reference, orderId}:{reference: string, orderId: string}) {
+export default function OrderConfirmationPage({reference, orderId, amount, email}:{reference: string, orderId: string, amount: number, email: string}) {
   const [paymentInfo, setPaymentInfo] = useState<PaymentInfo | null>(null);
   
   // 1. Derive orderNumber directly from props. 
@@ -35,7 +35,7 @@ export default function OrderConfirmationPage({reference, orderId}:{reference: s
   if (!paymentInfo) {
     return (
       <div className="container mx-auto px-4 py-24 text-center">
-        <p className="text-muted-foreground animate-pulse italic">Verifying order integrity...</p>
+        <p className="text-muted-foreground animate-pulse italic text-lg">Verifying your order...</p>
       </div>
     );
   }
@@ -75,11 +75,11 @@ export default function OrderConfirmationPage({reference, orderId}:{reference: s
             </div>
             <div>
               <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block mb-1">Amount</span>
-              <span className="text-xl font-bold italic">{paymentInfo.amount}</span>
+              <span className="text-xl font-bold italic">{amount}</span>
             </div>
             <div>
               <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block mb-1">Email</span>
-              <span className="text-xl font-bold italic">{paymentInfo.email}</span>
+              <span className="text-xl font-bold italic">{email}</span>
             </div>
           </div>
           

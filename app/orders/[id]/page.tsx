@@ -17,7 +17,6 @@ import {
   CreditCard, 
   MapPin, 
   Calendar,
-  ChevronRight,
   ShieldCheck,
   Loader2,
   AlertCircle

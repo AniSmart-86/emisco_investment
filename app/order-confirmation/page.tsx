@@ -41,7 +41,7 @@ export default async function ConfirmPayment({
 
     method: 'POST',
     headers: {
-      Authorization: 'Bearer sk_test_f838f9ca975fa9754068552cd3441954e2c04513',
+      Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
@@ -57,6 +57,8 @@ export default async function ConfirmPayment({
     <OrderConfirmationPage
       reference={reference}
       orderId={orderId}
+      amount={result.data.amount}
+      email={result.data.customer.email}
     />
   );
 }

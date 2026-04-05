@@ -221,7 +221,7 @@ type User = {
         <Button
           variant="ghost"
           size="icon"
-          className="fixed top-15 left-0 p-4 z-50 lg:hidden bg-dark-green"
+          className="fixed top-15 left-5 p-4 z-50 lg:hidden bg-dark-green"
           onClick={() => setIsSidebarOpen(true)}
         >
           <Menu className="w-12 h-12" />
@@ -250,6 +250,7 @@ type User = {
                   key={item.id}
                   onClick={() => {
                     setActiveTab(item.id);
+                    setIsSidebarOpen(false);
                     if (item.id === 'add-product') {
                       setEditingProduct(null);
                       setNewProduct({ name: '', price: '', oldPrice: '', stock: '', category: '', description: '', image: '' });
@@ -280,10 +281,9 @@ type User = {
             <div className="flex justify-between items-end">
               <div>
                 
-                <h2 className="text-3xl font-bold mb-2">
+                <h2 className="md:text-4xl text-2xl font-bold mb-2">
                   {navItems.find(i => i.id === activeTab)?.label}
                 </h2>
-                <p className="text-muted-foreground italic">Welcome {user?.name}</p>
                 <p className="text-muted-foreground italic">Administrative Overview</p>
               </div>
               <div className="hidden sm:block">
@@ -324,7 +324,7 @@ type User = {
                   <Card className="lg:col-span-2 border-border/50 bg-card rounded-[2.5rem] overflow-hidden p-8 shadow-xl">
                     <div className="flex justify-between items-center mb-8">
                       <h3 className="text-xl font-bold">Recent Transactions</h3>
-                      <Button variant="outline" className="rounded-xl font-bold text-xs uppercase tracking-widest h-8">View All</Button>
+                      <Button onClick={() => setActiveTab('orders')} variant="outline" className="rounded-xl font-bold text-xs uppercase tracking-widest h-8">View All</Button>
                     </div>
                     <Table>
                       <TableHeader>
@@ -377,7 +377,7 @@ type User = {
                         </div>
                       ))}
                     </div>
-                    <Button className="w-full mt-12 bg-dark-green hover:bg-emerald-900 text-white rounded-2xl py-6 font-bold">
+                    <Button onClick={() => setActiveTab('analytics')} className="w-full mt-12 bg-dark-green hover:bg-emerald-900 text-white rounded-2xl py-6 font-bold">
                       Full Report <ArrowUpRight className="ml-2 w-4 h-4" />
                     </Button>
                   </Card>
@@ -386,14 +386,16 @@ type User = {
             )}
 
             {activeTab === 'products' && (
-              <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-8">
-                <div className="flex justify-between items-center ">
-                  <h3 className="text-sm md:text-xl font-bold">Inventory Management</h3>
-                  <Button onClick={() => setActiveTab('add-product')} className="bg-pure-green hover:bg-pure-green-hover text-white rounded-xl font-bold gap-2">
-                    <Plus className="w-4 h-4" /> Add Product
+              // <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-8">
+              <>
+                <div className="flex justify-between items-center mb-6 gap-4">
+                  <h3 className="text-lg md:text-xl font-bold">Inventory</h3>
+                  <Button onClick={() => setActiveTab('add-product')} className="bg-pure-green hover:bg-pure-green-hover text-white rounded-xl font-bold gap-2 px-3 md:px-4">
+                    <Plus className="w-4 h-4" /> <span className="hidden sm:inline">Add Product</span>
                   </Button>
                 </div>
-                <Card className="border-border/50 bg-card rounded-3xl p-2 overflow-hidden shadow-xl">
+                <Card className="border-border/50 bg-card rounded-3xl p-3 md:p-8 overflow-hidden shadow-xl">
+                  <div className="overflow-x-auto">
                   <Table >
                     <TableHeader className='px-4'>
                       <TableRow className="border-border">
@@ -456,8 +458,10 @@ type User = {
                       ))}
                     </TableBody>
                   </Table>
+                  </div>
                 </Card>
-              </motion.div>
+                </>
+              // </motion.div>
             )}
 
             {activeTab === 'add-product' && (
@@ -641,9 +645,9 @@ type User = {
 
           {activeTab === 'orders' && (
             <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="grow">
-               <Card className="border-border/50 bg-card rounded-[2.5rem] p-8 shadow-2xl overflow-hidden">
-                <div className="flex justify-between items-center mb-8">
-                   <h3 className="text-2xl font-bold">Manage All Orders</h3>
+               <Card className="border-border/50 bg-card rounded-[2.5rem] p-3 md:p-8 shadow-2xl overflow-hidden">
+                <div className="flex justify-between items-center mb-8 gap-4">
+                   <h3 className="text-lg md:text-2xl font-bold">All Orders</h3>
                    <div className="flex gap-2">
                       <span className="px-3 py-1 rounded-full bg-muted text-[10px] font-bold uppercase tracking-wider">{orders.length} Total</span>
                    </div>
