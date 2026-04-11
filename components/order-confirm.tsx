@@ -5,6 +5,7 @@ import { CheckCircle2, Package, ArrowRight, Truck} from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { useState, useEffect } from 'react';
+import Confetti from 'react-confetti';
 
 
 interface PaymentInfo {
@@ -47,10 +48,19 @@ export default function OrderConfirmationPage({reference, orderId, amount, email
       </div>
     );
   }
+
   
   return (
     <>
           <div className="container mx-auto px-4 py-24 text-center">
+             <Confetti 
+       width={window.innerWidth}
+       height={window.innerHeight}
+       gravity={0.1}
+       style={{zIndex: 99}}
+       numberOfPieces={700}
+       recycle={false} />
+
             <motion.div
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}

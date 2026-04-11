@@ -15,7 +15,7 @@ export default async function ConfirmPayment({
   // ✅ Await searchParams as required in Next.js 15/16
   const { reference, trxref, orderId } = await searchParams;
 
-  // Paystack sometimes returns trxref instead of reference
+
   const paymentReference = reference || trxref;
 
   if (!paymentReference || !orderId) {
