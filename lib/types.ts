@@ -12,6 +12,14 @@ export interface Product {
   updatedAt: string | Date;
 }
 
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: 'USER' | 'ADMIN';
+  createdAt?: string | Date;
+}
+
 export interface DashboardData {
   totalRevenue: number;
   totalOrders: number;

@@ -29,10 +29,12 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import Link from 'next/link';
 import { toast } from 'sonner';
-import { Product, Order, DashboardData } from '@/lib/types';
+import { Product, Order, DashboardData, User } from '@/lib/types';
 import axios from 'axios';
 import { api } from '@/lib/api';
 import { DeliveryStatus } from '@/lib/generated/prisma/enums';
+import AnalyticsView from '@/components/admin/AnalyticsView';
+import { Edit, Trash2 } from 'lucide-react';
 
 export default function AdminDashboard() {
   const { user, logout } = useAuthStore();
@@ -60,27 +62,16 @@ export default function AdminDashboard() {
         setProducts(res.data);
       }).catch(console.error);
     } else if (activeTab === 'add-product') {
-      // Reset editing mode when manually clicking "Add Product"
       if (!editingProduct) {
         setNewProduct({ name: '', price: '', oldPrice: '', stock: '', category: '', description: '', image: '' });
         setImagePreview(null);
       }
     } else if (activeTab === 'users') {
       api.get('/admin/users').then(res => setUsers(res.data)).catch(console.error);
-     
     } else if (activeTab === 'orders') {
       api.get('/admin/orders').then(res => setOrders(res.data.orders)).catch(console.error);
     }
   }, [activeTab, editingProduct]);
-
-//  console.log(users)
-
-type User = {
-  id: string;
-  name: string;
-  email: string;
-  role: 'USER' | 'ADMIN';
-};
                            
 // type DeliveryStatus =
 //   | 'PENDING'
@@ -338,10 +329,10 @@ type User = {
                       <TableBody>
                         {orders.map((order) => (
                           <TableRow key={order.id} className="border-border hover:bg-muted/30">
-                            <TableCell className="font-mono text-xs">{order.id.slice(0, 8).toUpperCase()}</TableCell>
-                            <TableCell className="font-semibold text-sm">{order.user?.name || 'Unknown'}</TableCell>
+                            <TableCell className="font-mono text-xs">{order.id.slice(0, 6).toUpperCase()}...</TableCell>
+                            <TableCell className="font-semibold text-xs">{order.user?.name || 'Unknown'}</TableCell>
                             <TableCell>
-                              <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${order.deliveryStatus === 'DELIVERED' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-pure-green/10 text-pure-green'
+                              <span className={`px-3 py-1 rounded-full text-[8px] font-bold uppercase tracking-wider ${order.deliveryStatus === 'DELIVERED' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-pure-green/10 text-pure-green'
                                 }`}>
                                 {order.deliveryStatus}
                               </span>
@@ -386,87 +377,75 @@ type User = {
             )}
 
             {activeTab === 'products' && (
-              <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-8">
-              <>
-                <div className="flex justify-between items-center mb-6 gap-4">
+              <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="">
+        
+
+                <div className="flex justify-between mb-6 gap-4">
                   <h3 className="text-lg md:text-xl font-bold">Inventory</h3>
                   <Button onClick={() => setActiveTab('add-product')} className="bg-pure-green hover:bg-pure-green-hover text-white rounded-xl font-bold gap-2 px-3 md:px-4">
                     <Plus className="w-4 h-4" /> <span className="hidden sm:inline">Add Product</span>
                   </Button>
                 </div>
-                <Card className="lg:col-span-2 border-border/50 bg-card rounded-[2.5rem] overflow-hidden p-4 md:p-8 shadow-xl">
-                  
-                  <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader className=''>
-                      <TableRow className="border-border">
-                        <TableHead className="font-bold">Part Name</TableHead>
-                        <TableHead className="font-bold">Category</TableHead>
-                        <TableHead className="font-bold">Price</TableHead>
-                        <TableHead className="font-bold">Stock</TableHead>
-                        <TableHead className="font-bold text-right">Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody >
-                      {products.map((prod) => (
-                        <TableRow key={prod.id} className="border-border hover:bg-muted/30 px-4">
-                          <TableCell className="font-bold">
-                            {prod.name}
-                            {!prod.isActive && (
-                              <span className="ml-2 px-2 py-0.5 rounded-full bg-red-100 text-red-600 text-[10px] font-bold uppercase tracking-tighter">Archived</span>
-                            )}
-                          </TableCell>
-                          <TableCell className="text-xs font-bold text-pure-green uppercase tracking-widest">{prod.category}</TableCell>
-                          <TableCell className="font-bold">{prod.price}</TableCell>
-                          <TableCell>
-                            <span className={`font-mono text-sm ${prod.stock < 10 ? 'text-red-500 font-bold' : ''}`}>
-                              {prod.stock} Units
-                            </span>
-                          </TableCell>
-                          <TableCell className="text-right relative">
-                            <div className="relative inline-block">
-                            {!productMenu &&(
-                            
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() =>{ setActiveProductMenu(prod.id)}}
-                              >
-                                <MoreVertical />
-                              </Button>
-                            )}
-
-                                {activeProductMenu === prod.id && (
-                                  <div className="absolute -right-10 bottom-0 mt-2 w-32 bg-white dark:bg-black border rounded-xl shadow-lg z-50 overflow-hidden">
-                                    <button 
-                                      onClick={() => handleEditProduct(prod)} 
-                                      className="block w-full text-left px-4 py-3 text-sm font-semibold hover:bg-muted transition-colors border-b border-border/50"
-                                    >
-                                      Edit
-                                    </button>
-                                    <button 
-                                      onClick={() => deleteProduct(prod.id)} 
-                                      className="block w-full text-left px-4 py-3 text-sm font-semibold text-red-500 hover:bg-red-50/10 transition-colors"
-                                    >
-                                      Delete
-                                    </button>
-                                  </div>
-                                )}
-                          
-                            </div>
-                          </TableCell>
+                <Card className="lg:col-span-2 border-border/50 bg-card rounded-[2.5rem] overflow-hidden p-2 md:p-8 shadow-xl">
+                  <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-pure-green/20">
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="border-border">
+                          <TableHead className="font-bold min-w-[200px]">Part Name</TableHead>
+                          <TableHead className="font-bold">Category</TableHead>
+                          <TableHead className="font-bold">Price</TableHead>
+                          <TableHead className="font-bold">Stock</TableHead>
+                          <TableHead className="font-bold text-right">Actions</TableHead>
                         </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                      </TableHeader>
+                      <TableBody>
+                        {products.map((prod) => (
+                          <TableRow key={prod.id} className="border-border hover:bg-muted/30 whitespace-nowrap">
+                            <TableCell className="font-bold">
+                              {prod.name}
+                              {!prod.isActive && (
+                                <span className="ml-2 px-2 py-0.5 rounded-full bg-red-100 text-red-600 text-[10px] font-bold uppercase tracking-tighter">Archived</span>
+                              )}
+                            </TableCell>
+                            <TableCell className="text-[10px] font-bold text-pure-green uppercase tracking-widest">{prod.category}</TableCell>
+                            <TableCell className="font-bold">₦{prod.price?.toLocaleString()}</TableCell>
+                            <TableCell>
+                              <span className={`font-mono text-sm ${prod.stock < 10 ? 'text-red-500 font-bold' : ''}`}>
+                                {prod.stock} Units
+                              </span>
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <div className="flex justify-end gap-2">
+                                <Button 
+                                  variant="outline" 
+                                  size="sm" 
+                                  className="h-8 rounded-lg border-border hover:bg-muted font-bold text-[10px] uppercase"
+                                  onClick={() => handleEditProduct(prod)}
+                                >
+                                  <Edit className="w-3 h-3 mr-1" /> Edit
+                                </Button>
+                                <Button 
+                                  variant="destructive" 
+                                  size="sm" 
+                                  className="h-8 rounded-lg font-bold text-[10px] uppercase"
+                                  onClick={() => deleteProduct(prod.id)}
+                                >
+                                  <Trash2 className="w-3 h-3 mr-1" /> Delete
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
                   </div>
                 </Card>
-                </>
-               </motion.div>
+          
+              </motion.div>
             )}
 
             {activeTab === 'add-product' && (
-              <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="max-w-2xl">
+              <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="">
                 <Card className="border-border/50 bg-card rounded-[2.5rem] p-3 md:p-8 shadow-2xl">
                   <h3 className="text-2xl font-bold mb-8 text-center">
                     {editingProduct ? 'Update Product' : 'Add New Part'}
@@ -610,36 +589,46 @@ type User = {
 
             {/* USERS */}
           {activeTab === 'users' && (
-            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="max-w-2xl">
-                <Card className="border-border/50 bg-card rounded-[2.5rem] p-2 md:p-12 shadow-2xl">
+            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="">
+                <Card className="border-border/50 bg-card rounded-[2.5rem] p-2 md:p-8 shadow-2xl">
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="border-border hover:bg-transparent">
+                          <TableHead className="font-bold">User Information</TableHead>
+                          <TableHead className="font-bold">Contact Email</TableHead>
+                          <TableHead className="font-bold">Assigned Role</TableHead>
+                          <TableHead className="font-bold text-right px-6">Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
 
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Role</TableHead>
-                    <TableHead />
-                  </TableRow>
-                </TableHeader>
+                      <TableBody>
+                        {users?.map(u=> (
+                          <TableRow key={u.id} className="border-border hover:bg-muted/30 whitespace-nowrap">
+                            <TableCell className="font-bold py-6 px-4">{u.name}</TableCell>
+                            <TableCell className="text-sm italic text-muted-foreground">{u.email}</TableCell>
+                            <TableCell>
+                                <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${u.role === 'ADMIN' ? 'bg-pure-green/10 text-pure-green border border-pure-green/20' : 'bg-muted text-muted-foreground'}`}>
+                                    {u.role}
+                                </span>
+                            </TableCell>
 
-                <TableBody>
-                  {users?.map(u=> (
-                    <TableRow key={u.id}>
-                      <TableCell>{u.name}</TableCell>
-                      <TableCell>{u.email}</TableCell>
-                      <TableCell>{u.role}</TableCell>
-
-                      <TableCell className="text-right">
-                        <Button size="sm" variant="destructive" onClick={() => deleteUser(u.id)}>
-                          Delete
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </Card>
+                            <TableCell className="text-right px-6">
+                              <Button 
+                                variant="destructive" 
+                                size="sm" 
+                                className="h-8 rounded-lg font-bold text-[10px] uppercase"
+                                onClick={() => deleteUser(u.id)}
+                              >
+                                <Trash2 className="w-3 h-3 mr-1" /> Remove
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </Card>
             </motion.div>
           )}
 
@@ -711,11 +700,8 @@ type User = {
             </motion.div>
           )}
 
-          
-            {(activeTab === 'analytics') && (
-              <div className="py-32 text-center text-muted-foreground italic border-2 border-dashed border-border rounded-[3rem]">
-                The full {activeTab} view is being optimized for large datasets.
-              </div>
+            {activeTab === 'analytics' && (
+              <AnalyticsView />
             )}
           </div>
         </main>

@@ -93,7 +93,7 @@ export default function OrderConfirmationPage({reference, orderId, amount, email
             </div>
             <div>
               <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block mb-1">Amount</span>
-              <span className="text-xl font-bold italic">{amount}</span>
+              <span className="text-xl font-bold italic">₦{amount.toLocaleString()}</span>
             </div>
             <div>
               <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block mb-1">Email</span>
