@@ -31,6 +31,7 @@ export function ProductCard({ product }: ProductCardProps) {
     >
       <Card className="overflow-hidden border-border/50 bg-card/50 backdrop-blur-sm rounded-2xl transition-all duration-300 hover:shadow-2xl hover:shadow-pure-green/10">
         <div className="relative aspect-square overflow-hidden">
+          <Link href={`/products/${product.id}`}>
           <Image
             src={product.image}
             alt={product.name}
@@ -38,11 +39,9 @@ export function ProductCard({ product }: ProductCardProps) {
             className="object-cover transition-transform duration-500 group-hover:scale-110"
           />
           <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-3">
-            <Link href={`/products/${product.id}`}>
               <Button size="icon" variant="secondary" className="rounded-full">
                 <Eye className="w-4 h-4" />
               </Button>
-            </Link>
             <Button size="icon" className="bg-pure-green hover:bg-pure-green-hover rounded-full" onClick={handleAddToCart}>
               <ShoppingCart className="w-4 h-4" />
             </Button>
@@ -52,6 +51,7 @@ export function ProductCard({ product }: ProductCardProps) {
               SALE
             </div>
           )}
+            </Link>
         </div>
         <CardHeader className="p-4 pb-2">
           <div className="text-[10px] font-bold text-pure-green uppercase tracking-wider mb-1">

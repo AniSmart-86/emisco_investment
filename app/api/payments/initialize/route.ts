@@ -24,6 +24,10 @@ export async function POST(request: Request) {
 
     const result = await res.json();
 
+
+
+
+
     if (!res.ok) {
       return NextResponse.json(
         { error: result.message || "Failed to initialize payment" },

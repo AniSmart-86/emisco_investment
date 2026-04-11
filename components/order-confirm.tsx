@@ -14,28 +14,36 @@ interface PaymentInfo {
 }
 
 export default function OrderConfirmationPage({reference, orderId, amount, email}:{reference: string, orderId: string, amount: number, email: string}) {
-  const [paymentInfo, setPaymentInfo] = useState<PaymentInfo | null>(null);
+  // 1. Initialize state from localStorage ONLY as a fallback
+  const [paymentInfo, setPaymentInfo] = useState<PaymentInfo | null>(() => {
+    // If props are provided, use them immediately
+    if (amount && email && orderId) {
+        return { amount, email, orderId };
+    }
+    // Otherwise fallback to localStorage (only runs on mount)
+    if (typeof window !== 'undefined') {
+        const stored = localStorage.getItem("paymentInfo");
+        return stored ? JSON.parse(stored) : null;
+    }
+    return null;
+  });
   
-  // 1. Derive orderNumber directly from props. 
-  // No need for useState or useEffect for this.
-  const refNumber = `EMS-${reference}`;
+  const refNumber = `${reference}`;
 
+  // 2. Synchronize localStorage as a side effect (no setState here)
   useEffect(() => {
-    // Load paymentInfo from localStorage once when the component mounts.
-    const storedInfo = typeof window !== 'undefined' ? localStorage.getItem("paymentInfo") : null;
-    const data: PaymentInfo | null = storedInfo ? JSON.parse(storedInfo) : null;
-    
-    // Wrap the update in a microtask to avoid "cascading renders" warning in React 18+
-    queueMicrotask(() => {
-      setPaymentInfo(data);
-      console.log(data)
-    });
-  }, []);
+    if (amount && email && orderId) {
+        localStorage.setItem("paymentInfo", JSON.stringify({ amount, email, orderId }));
+    }
+  }, [amount, email, orderId]);
 
-  if (!paymentInfo) {
+  // Determine what data to actually display (prioritize props)
+  const displayData = (amount && email && orderId) ? { amount, email, orderId } : paymentInfo;
+
+  if (!displayData) {
     return (
       <div className="container mx-auto px-4 py-24 text-center">
-        <p className="text-muted-foreground animate-pulse italic text-lg">Verifying your order...</p>
+        <p className="text-muted-foreground animate-pulse italic text-lg">Verifying your order details...</p>
       </div>
     );
   }

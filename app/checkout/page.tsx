@@ -101,13 +101,6 @@ const handlePlaceOrder = async (e: React.FormEvent) => {
       throw new Error('Payment initialization failed');
     }
 
-    // ✅ 3. SAVE FOR CLIENT CHECK (OPTIONAL)
-    localStorage.setItem('paymentInfo', JSON.stringify({
-      amount: finalTotal,
-      email: user.email,
-      orderId: order.id,
-    }));
-
 
     clearCart();
    
@@ -115,6 +108,7 @@ const handlePlaceOrder = async (e: React.FormEvent) => {
 
   } catch (error) {
     console.error(error);
+    
     toast.error('Something went wrong');
   } finally {
     setLoading(false);
