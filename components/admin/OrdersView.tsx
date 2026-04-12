@@ -1,10 +1,11 @@
 'use client';
 
-import { Order } from '@/lib/types';
+
 import { Card } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { DeliveryStatus } from '@/lib/generated/prisma/enums';
 import { motion } from 'framer-motion';
+import { DeliveryStatus } from '@/lib/generated/prisma';
+import { Order } from '@/lib/types';
 
 interface OrdersViewProps {
     orders: Order[];
@@ -28,6 +29,7 @@ export default function OrdersView({ orders, onUpdateStatus }: OrdersViewProps) 
                                 <TableHead className="font-bold">Order Details</TableHead>
                                 <TableHead className="font-bold">Customer</TableHead>
                                 <TableHead className="font-bold">Payment</TableHead>
+                                <TableHead className="font-bold">Logistics</TableHead>
                                 <TableHead className="font-bold">Amount</TableHead>
                                 <TableHead className="font-bold text-right">Delivery Status</TableHead>
                             </TableRow>
@@ -50,6 +52,17 @@ export default function OrdersView({ orders, onUpdateStatus }: OrdersViewProps) 
                                             }`}>
                                             {o.paymentStatus}
                                         </span>
+                                    </TableCell>
+                                    <TableCell>
+                                        <div className="text-xs font-bold">{o.shippingState || 'Lagos'}</div>
+                                        {o.transportCompany && (
+                                            <div className="text-[10px] text-muted-foreground">{o.transportCompany}</div>
+                                        )}
+                                        {o.terminalAddress && (
+                                            <div className="text-[10px] text-pure-green font-bold truncate max-w-[120px]" title={o.terminalAddress}>
+                                                {o.terminalAddress}
+                                            </div>
+                                        )}
                                     </TableCell>
                                     <TableCell className="font-bold">₦{o.totalAmount?.toLocaleString()}</TableCell>
                                     <TableCell className="text-right">

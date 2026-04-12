@@ -1,5 +1,6 @@
 import nodemailer from 'nodemailer';
 import prisma from './prisma';
+import { Order, OrderItem } from './types';
 
 const transporter = nodemailer.createTransport({
   service: 'gmail', // Standardizes Gmail settings
@@ -9,25 +10,63 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-const EMISCO_LOGO = "https://res.cloudinary.com/dupdplmls/image/upload/v1774946745/l5kle05zlyyu08qo5cyy.jpg"; // Using a part image as placeholder logo if not available
+const EMISCO_LOGO = "https://res.cloudinary.com/dupdplmls/image/upload/v1774946745/l5kle05zlyyu08qo5cyy.jpg";
 const PRIMARY_COLOR = "#0D3121"; // Dark Green
 const SECONDARY_COLOR = "#10b981"; // Pure Green
 
-export async function sendOrderNotification(orderId: string, type: 'CREATED' | 'PAID') {
+/**
+ * Sends a delayed order notification if the payment is still pending.
+ * This ensures the database and email status are perfectly in sync.
+ */
+export async function sendOrderNotificationWithSync(orderId: string, delayMs: number = 60000) {
+  console.log(`Email Sync: Waiting ${delayMs}ms before checking order #${orderId}...`);
+  
+  setTimeout(async () => {
+    try {
+      // 1. Re-query the database to get the latest status
+      const order = await prisma.order.findUnique({
+        where: { id: orderId },
+        include: {
+          user: true,
+          orderItems: true,
+        },
+      });
+
+      if (!order) {
+        console.log(`Email Sync: Order #${orderId} not found. Skipping.`);
+        return;
+      }
+
+      // 2. Dynamic Decision: "Capture" the state after 60 seconds
+      // Determine which version of the email to send based on current status
+      const type = order.paymentStatus === 'PAID' ? 'PAID' : 'CREATED';
+      
+      await sendOrderNotification(orderId, type, order);
+      
+      
+    } catch (error) {
+      console.error('Email Sync Error:', error);
+    }
+  }, delayMs);
+}
+
+/**
+ * Core notification function for both immediate (PAID) and delayed (CREATED) emails.
+ */
+export async function sendOrderNotification(orderId: string, type: 'CREATED' | 'PAID', preloadedOrder?: Order) {
   try {
-    const order = await prisma.order.findUnique({
+    const order = preloadedOrder || await prisma.order.findUnique({
       where: { id: orderId },
       include: {
         user: true,
         orderItems: true,
       },
     });
-
-    if (!order || !order.user.email) return;
+    if (!order || !order.user || !order.user.email || !order.orderItems) return;
 
     const subject = type === 'PAID' 
-      ? `Order Confirmed - #${order.id.slice(0, 8).toUpperCase()}`
-      : `Order Received - #${order.id.slice(0, 8).toUpperCase()}`;
+      ? `Order Confirmed - ${order.id.toUpperCase()}`
+      : `Order Received - ${order.id.toUpperCase()}`;
 
     const statusText = type === 'PAID' 
       ? 'Your payment was successful and your order is confirmed!'
@@ -35,7 +74,7 @@ export async function sendOrderNotification(orderId: string, type: 'CREATED' | '
 
     const itemsHtml = order.orderItems
       .map(
-        (item) => `
+        (item: OrderItem) => `
       <tr>
         <td style="padding: 15px 0; border-bottom: 1px solid #edf2f7;">
            <table cellpadding="0" cellspacing="0">
@@ -60,86 +99,43 @@ export async function sendOrderNotification(orderId: string, type: 'CREATED' | '
 
     const mailOptions = {
       from: `"Emisco Investment Ltd" <${process.env.SMTP_USER}>`,
-      to: order.user.email,
+      to: order.user?.email,
       subject: subject,
       html: `
         <!DOCTYPE html>
         <html>
-        <head>
-          <style>
-            @media only screen and (max-width: 600px) {
-              .container { width: 100% !important; margin: 0 !important; }
-            }
-          </style>
-        </head>
-        <body style="margin: 0; padding: 20px; background-color: #f7fafc; font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;">
-          <table class="container" cellpadding="0" cellspacing="0" style="max-width: 600px; margin: auto; background: white; border-radius: 24px; overflow: hidden; box-shadow: 0 4px 25px rgba(0,0,0,0.05);">
-            <!-- Header -->
+        <body style="margin: 0; padding: 10px; background-color: #f7fafc; font-family: sans-serif;">
+          <table cellpadding="0" cellspacing="0" style="max-width: 600px; margin: auto; background: white; border-radius: 24px; overflow: hidden; box-shadow: 0 4px 25px rgba(0,0,0,0.05);">
             <tr>
-              <td style="background: ${PRIMARY_COLOR}; padding: 40px 20px; text-align: center;">
+              <td style="background: ${PRIMARY_COLOR}; padding: 30px 10px; text-align: center;">
                 <div style="display: inline-block; background: white; padding: 10px; border-radius: 12px; margin-bottom: 15px;">
                   <img src="${EMISCO_LOGO}" alt="Emisco" style="width: 40px; height: 40px; display: block;">
                 </div>
-                <h1 style="color: white; margin: 0; font-size: 24px; letter-spacing: -0.5px;">EMISCO INVESTMENT LTD</h1>
-                <p style="color: rgba(255,255,255,0.7); margin-top: 5px; font-size: 14px; text-transform: uppercase; tracking: 0.1em;">Truck Parts Specialist</p>
+                <h1 style="color: white; margin: 0; font-size: 20px;">EMISCO INVESTMENT LTD</h1>
               </td>
             </tr>
-            
-            <!-- Body -->
             <tr>
               <td style="padding: 40px 30px;">
-                <h2 style="color: #1a202c; margin-top: 0; font-size: 20px;">${type === 'PAID' ? 'Confirmation' : 'Order Received'}</h2>
-                <p style="color: #4a5568; line-height: 1.6;">Hi ${order.user.name}, ${statusText}</p>
-                
-                <div style="background: #f7fafc; border: 1px solid #edf2f7; border-radius: 16px; padding: 20px; margin: 30px 0;">
-                  <table style="width: 100%;">
-                    <tr>
-                      <td><span style="color: #718096; font-size: 12px; font-weight: 700; text-transform: uppercase;">Order ID</span></td>
-                      <td style="text-align: right;"><span style="color: #718096; font-size: 12px; font-weight: 700; text-transform: uppercase;">Date</span></td>
-                    </tr>
-                    <tr>
-                      <td><span style="color: #1a202c; font-weight: 600;">#${order.id.toUpperCase().slice(0, 12)}</span></td>
-                      <td style="text-align: right;"><span style="color: #1a202c; font-weight: 600;">${new Date(order.createdAt).toLocaleDateString()}</span></td>
-                    </tr>
-                  </table>
+                <h2 style="color: #1a202c;">${type === 'PAID' ? 'Confirmation' : 'Order Received'}</h2>
+                <p style="color: #4a5568; line-height: 1.6;">Hi ${order.user?.name}, ${statusText}</p>
+                <div style="background: #f7fafc; padding: 20px; margin: 20px 0; border-radius: 12px;">
+                   <b>Order ID:</b> #${order.id.toUpperCase().slice(0, 12)}
                 </div>
-
                 <table style="width: 100%; border-collapse: collapse;">
                   <thead>
                     <tr>
-                      <th style="padding-bottom: 10px; border-bottom: 2px solid #edf2f7; text-align: left; font-size: 12px; color: #718096; text-transform: uppercase;">Product</th>
-                      <th style="padding-bottom: 10px; border-bottom: 2px solid #edf2f7; text-align: right; font-size: 12px; color: #718096; text-transform: uppercase;">Price</th>
+                      <th style="padding-bottom: 10px; border-bottom: 2px solid #edf2f7; text-align: left;">Product</th>
+                      <th style="padding-bottom: 10px; border-bottom: 2px solid #edf2f7; text-align: right;">Price</th>
                     </tr>
                   </thead>
-                  <tbody>
-                    ${itemsHtml}
-                  </tbody>
+                  <tbody>${itemsHtml}</tbody>
                 </table>
-
-                <div style="margin-top: 20px;">
-                  <table style="width: 100%;">
-                    <tr>
-                      <td style="padding: 10px 0; color: #718096;">Subtotal</td>
-                      <td style="padding: 10px 0; text-align: right; color: #1a202c; font-weight: 600;">₦${order.totalAmount.toLocaleString()}</td>
-                    </tr>
-                    <tr>
-                      <td style="padding: 15px 0; color: #1a202c; font-size: 18px; font-weight: 800;">Total</td>
-                      <td style="padding: 15px 0; text-align: right; color: ${SECONDARY_COLOR}; font-size: 20px; font-weight: 800;">₦${order.totalAmount.toLocaleString()}</td>
-                    </tr>
-                  </table>
+                <div style="margin-top: 20px; text-align: right;">
+                   <h3 style="color: ${SECONDARY_COLOR};">Total: ₦${order.totalAmount.toLocaleString()}</h3>
                 </div>
-
                 <div style="margin-top: 40px; text-align: center;">
-                  <a href="${process.env.NEXT_PUBLIC_BASE_URL}/order-confirmation?orderId=${order.id}" style="background: ${SECONDARY_COLOR}; color: white; padding: 18px 30px; border-radius: 14px; text-decoration: none; font-weight: 700; font-size: 16px; display: inline-block; box-shadow: 0 10px 15px rgba(16, 185, 129, 0.2);">View Order Details</a>
+                  <a href="${process.env.NEXT_PUBLIC_BASE_URL}/order-confirmation?orderId=${order.id}" style="background: ${SECONDARY_COLOR}; color: white; padding: 15px 25px; border-radius: 12px; text-decoration: none; font-weight: 700;">View Order Details</a>
                 </div>
-              </td>
-            </tr>
-
-            <!-- Footer -->
-            <tr>
-              <td style="padding: 30px; background: #f7fafc; text-align: center; border-top: 1px solid #edf2f7;">
-                <p style="color: #718096; font-size: 12px; margin: 0;">&copy; ${new Date().getFullYear()} Emisco Investment Ltd. All rights reserved.</p>
-                <p style="color: #a0aec0; font-size: 11px; margin-top: 5px;">You received this email because you placed an order on our store.</p>
               </td>
             </tr>
           </table>
@@ -149,7 +145,7 @@ export async function sendOrderNotification(orderId: string, type: 'CREATED' | '
     };
 
     await transporter.sendMail(mailOptions);
-    console.log(`Email notification (${type}) sent to ${order.user.email}`);
+    console.log(`Email notification (${type}) sent to ${order.user?.email}`);
   } catch (error) {
     console.error('Email Notification Error:', error);
   }
@@ -161,8 +157,7 @@ export async function sendDeliveryStatusUpdateEmail(orderId: string, status: str
       where: { id: orderId },
       include: { user: true },
     });
-
-    if (!order || !order.user.email) return;
+    if (!order || !order.user || !order.user.email) return;
 
     const statusColors: Record<string, string> = {
       'PROCESSING': '#3b82f6',
@@ -171,11 +166,13 @@ export async function sendDeliveryStatusUpdateEmail(orderId: string, status: str
       'DELIVERED': '#10b981',
     };
 
-    const color = statusColors[status] || SECONDARY_COLOR;
+    const color = statusColors[status] || PRIMARY_COLOR;
+    const isLagos = order.shippingState?.toLowerCase() === 'lagos';
+    const showPickupInstructions = status === 'DELIVERED' && !isLagos && order.terminalAddress;
 
     const mailOptions = {
        from: `"Emisco Investment Ltd" <${process.env.SMTP_USER}>`,
-      to: order.user.email,
+      to: order.user?.email,
       subject: `Delivery Update - OrderId:${order.id.slice(0, 8).toUpperCase()}`,
       html: `
         <!DOCTYPE html>
@@ -184,6 +181,9 @@ export async function sendDeliveryStatusUpdateEmail(orderId: string, status: str
           <table cellpadding="0" cellspacing="0" style="max-width: 600px; margin: auto; background: white; border-radius: 20px; overflow: hidden; border: 1px solid #edf2f7;">
             <tr>
               <td style="background: ${PRIMARY_COLOR}; padding: 30px; text-align: center;">
+                <div style="display: inline-block; background: white; padding: 8px; border-radius: 10px; margin-bottom: 12px;">
+                  <img src="${EMISCO_LOGO}" alt="Emisco" style="width: 30px; height: 30px; display: block;">
+                </div>
                 <h1 style="color: white; margin: 0; font-size: 20px;">Order Status Update</h1>
               </td>
             </tr>
@@ -191,17 +191,20 @@ export async function sendDeliveryStatusUpdateEmail(orderId: string, status: str
               <td style="padding: 40px 30px; text-align: center;">
                 <div style="font-size: 14px; text-transform: uppercase; color: #718096; font-weight: 700; margin-bottom: 10px;">Delivery Status</div>
                 <div style="font-size: 32px; font-weight: 800; color: ${color};">${status.replace(/_/g, ' ')}</div>
+                <p style="color: #4a5568; margin-top: 30px;">Hi ${order.user?.name}, your order <b>#${order.id.slice(0, 8).toUpperCase()}</b> has updated status!</p>
                 
-                <p style="color: #4a5568; margin-top: 30px; line-height: 1.6;">Hi ${order.user.name}, your order with this id <b>#${order.id.slice(0, 8).toUpperCase()}</b> has progressed to it's next stage!</p>
-                
-                <div style="margin-top: 40px;">
-                  <a href="${process.env.NEXT_PUBLIC_BASE_URL}/order-confirmation?orderId=${order.id}" style="background: ${PRIMARY_COLOR}; color: white; padding: 15px 25px; border-radius: 12px; text-decoration: none; font-weight: 700;">Track Your Package</a>
+                ${showPickupInstructions ? `
+                <div style="margin-top: 40px; padding: 25px; background: #f0fff4; border: 2px dashed #48bb78; border-radius: 16px;">
+                  <h3 style="margin-top: 0; color: #2f855a;">📍 Pickup Instructions</h3>
+                  <p style="color: #4a5568; margin-bottom: 5px;">Your package has arrived at the terminal!</p>
+                  <div style="font-size: 18px; font-weight: 800; color: #1a202c; margin: 10px 0;">${order.terminalAddress}</div>
+                  <p style="font-size: 12px; color: #718096; margin-bottom: 0;">Please bring a valid ID and your Order ID for collection.</p>
                 </div>
-              </td>
-            </tr>
-            <tr>
-              <td style="padding: 20px; background: #f7fafc; text-align: center; color: #a0aec0; font-size: 12px;">
-                Emisco Investment Ltd - Fast & Reliable Delivery
+                ` : ''}
+
+                <div style="margin-top: 40px;">
+                  <a href="${process.env.NEXT_PUBLIC_BASE_URL}/order-confirmation?orderId=${order.id}" style="background: ${PRIMARY_COLOR}; color: white; padding: 15px 25px; border-radius: 12px; text-decoration: none;">Track Your Package</a>
+                </div>
               </td>
             </tr>
           </table>
@@ -211,7 +214,7 @@ export async function sendDeliveryStatusUpdateEmail(orderId: string, status: str
     };
 
     await transporter.sendMail(mailOptions);
-    console.log(`Status update email (${status}) sent to ${order.user.email}`);
+    console.log(`Status update email (${status}) sent to ${order.user?.email}`);
   } catch (error) {
     console.error('Email Status Update Error:', error);
   }

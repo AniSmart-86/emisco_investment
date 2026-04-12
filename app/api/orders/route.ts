@@ -2,7 +2,8 @@ import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { verifyToken } from '@/lib/auth';
 import { z } from 'zod';
-import { sendOrderNotification } from '@/lib/email-service';
+import { sendOrderNotificationWithSync } from '@/lib/email-service';
+import { getTerminalAddress } from '@/lib/logistics-data';
 
 const orderItemSchema = z.object({
   productId: z.string().uuid(),
@@ -11,6 +12,10 @@ const orderItemSchema = z.object({
 
 const orderSchema = z.object({
   items: z.array(orderItemSchema).min(1),
+  shippingState: z.string().optional(),
+  transportCompany: z.string().optional().nullable(),
+  address: z.string(),
+  deliveryFee: z.number().optional().default(0),
 });
 
 export async function GET(request: Request) {
@@ -91,8 +96,21 @@ export async function POST(request: Request) {
         totalItems += item.quantity;
       }
 
-      const deliveryFee = totalItems > 5 ? 10000 : 5000;
+      const isLagos = data.shippingState?.toLowerCase() === 'lagos';
+      const deliveryFee = isLagos ? 0 : (totalItems > 5 ? 10000 : 5000);
       const finalTotal = subtotal + deliveryFee;
+
+      // ✅ 1.5 Update User Address
+      await tx.user.update({
+        where: { id: payload.id },
+        data: { address: data.address }
+      });
+
+      // ✅ 2. Terminal Address Lookup
+      let terminalAddress = null;
+      if (data.transportCompany && data.shippingState) {
+        terminalAddress = getTerminalAddress(data.transportCompany, data.shippingState);
+      }
 
       // ✅ 3. Atomic stock updates (safe)
       await Promise.all(
@@ -113,6 +131,10 @@ export async function POST(request: Request) {
         data: {
           userId: payload.id,
           totalAmount: finalTotal,
+          shippingState: data.shippingState,
+          transportCompany: data.transportCompany,
+          terminalAddress: terminalAddress,
+          deliveryFee: deliveryFee,
           orderItems: {
             create: data.items.map(item => {
               const product = products.find(p => p.id === item.productId)!;
@@ -136,8 +158,8 @@ export async function POST(request: Request) {
       timeout: 30000, // ✅ Allow up to 30s for the transaction to complete
     });
 
-    // 📧 Send "Order Received" Email (Async)
-    sendOrderNotification(order.id, 'CREATED').catch(console.error);
+    // 📧 Send "Order Received" Email after 1 minute (Smart Sync)
+    sendOrderNotificationWithSync(order.id, 60000).catch(console.error);
 
 
     return NextResponse.json({ order }, { status: 201 });

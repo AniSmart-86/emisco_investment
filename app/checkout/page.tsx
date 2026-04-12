@@ -11,11 +11,12 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/lib/store/authStore';
+import { TRANSPORT_COMPANIES, NIGERIAN_STATES } from '@/lib/logistics-data';
 
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { user } = useAuthStore();
+  const { user, token } = useAuthStore();
   const { items, getTotal, getDeliveryFee, clearCart } = useCartStore();
   const subtotal = getTotal();
   const deliveryFee = getDeliveryFee();
@@ -40,8 +41,9 @@ localStorage.removeItem("paymentInfo");
   const [loading, setLoading] = useState(false);
   
   // Delivery Suggestion Logic
-  const showDeliverySuggestion = form.state.toLowerCase() !== 'lagos' && form.state !== '';
-  const transportCompanies = ['Okeyson Motors', 'GIG Logistics', 'Ifesinachi Motors'];
+  const isLagos = form.state.toLowerCase() === 'lagos';
+  const showDeliverySuggestion = !isLagos && form.state !== '';
+  const transportCompanies = TRANSPORT_COMPANIES;
 
 
 
@@ -49,7 +51,7 @@ localStorage.removeItem("paymentInfo");
 
   
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
@@ -80,6 +82,10 @@ const handlePlaceOrder = async (e: React.FormEvent) => {
     const orderRes = await api.post('/orders', {
       items: orderItems,
       totalAmount: finalTotal,
+      shippingState: form.state,
+      transportCompany: !isLagos ? deliveryMethod : null,
+      address: form.address,
+      deliveryFee: isLagos ? 0 : deliveryFee,
     });
 
     const order = orderRes.data.order;
@@ -87,7 +93,10 @@ const handlePlaceOrder = async (e: React.FormEvent) => {
     // ✅ 2. INITIALIZE PAYMENT WITH ORDER ID
     const paystackRes = await fetch('/api/payments/initialize', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
       body: JSON.stringify({
         email: user.email,
         amount: finalTotal * 100, 
@@ -189,14 +198,18 @@ const handlePlaceOrder = async (e: React.FormEvent) => {
               </div>
               <div>
                 <label className="text-sm font-bold text-muted-foreground uppercase tracking-widest mb-2 block">State</label>
-                <input
+                <select
                   name="state"
                   value={form.state}
                   onChange={handleInputChange}
-                  className="w-full bg-card border border-border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-pure-green/50"
-                  placeholder="Lagos, Abuja, etc."
+                  className="w-full bg-card border border-border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-pure-green/50 appearance-none"
                   required
-                />
+                >
+                  <option value="">Select State</option>
+                  {NIGERIAN_STATES.map(state => (
+                    <option key={state} value={state}>{state}</option>
+                  ))}
+                </select>
               </div>
               <div>
                 <label className="text-sm font-bold text-muted-foreground uppercase tracking-widest mb-2 block">City</label>

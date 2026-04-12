@@ -17,6 +17,7 @@ export interface User {
   name: string;
   email: string;
   role: 'USER' | 'ADMIN';
+  address?: string | null;
   createdAt?: string | Date;
 }
 
@@ -33,11 +34,17 @@ export interface Order {
   totalAmount: number;
   paymentStatus: 'PENDING' | 'PAID' | 'FAILED';
   deliveryStatus: 'PENDING' | 'PROCESSING' | 'SHIPPED' | 'OUT_FOR_DELIVERY' | 'DELIVERED';
+  shippingState?: string | null;
+  transportCompany?: string | null;
+  terminalAddress?: string | null;
+  deliveryFee?: number;
   createdAt: string | Date;
   updatedAt: string | Date;
   user?: {
+    id: string;
     name: string;
     email: string;
+    address?: string | null;
   };
   orderItems?: OrderItem[];
 }
@@ -48,8 +55,8 @@ export interface OrderItem {
   productId: string;
   quantity: number;
   price: number;
-  productName?: string;
-  productImage?: string;
+  productName?: string | null;
+  productImage?: string | null;
   product?: Product;
 }
 

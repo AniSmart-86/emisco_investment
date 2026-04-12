@@ -3,7 +3,6 @@
 import { Product, Order, DashboardData, User } from '@/lib/types';
 import axios from 'axios';
 import { api } from '@/lib/api';
-import { DeliveryStatus } from '@/lib/generated/prisma/enums';
 import AnalyticsView from '@/components/admin/AnalyticsView';
 import ProductsView from '@/components/admin/ProductsView';
 import OrdersView from '@/components/admin/OrdersView';
@@ -19,6 +18,7 @@ import { toast } from 'sonner';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { DeliveryStatus } from '@/lib/generated/prisma';
 
 export default function AdminDashboard() {
   const { user, logout } = useAuthStore();

@@ -22,6 +22,7 @@ export default function UsersView({ users, onDeleteUser }: UsersViewProps) {
               <TableRow className="border-border hover:bg-transparent">
                 <TableHead className="font-bold">User Information</TableHead>
                 <TableHead className="font-bold">Contact Email</TableHead>
+                <TableHead className="font-bold">Residential Address</TableHead>
                 <TableHead className="font-bold">Assigned Role</TableHead>
                 <TableHead className="font-bold text-right px-6">Actions</TableHead>
               </TableRow>
@@ -32,6 +33,7 @@ export default function UsersView({ users, onDeleteUser }: UsersViewProps) {
                 <TableRow key={u.id} className="border-border hover:bg-muted/30 whitespace-nowrap">
                   <TableCell className="font-bold py-6 px-4">{u.name}</TableCell>
                   <TableCell className="text-sm italic text-muted-foreground">{u.email}</TableCell>
+                  <TableCell className="text-xs max-w-[200px] truncate">{u.address || 'No address saved'}</TableCell>
                   <TableCell>
                     <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${u.role === 'ADMIN' ? 'bg-pure-green/10 text-pure-green border border-pure-green/20' : 'bg-muted text-muted-foreground'}`}>
                       {u.role}

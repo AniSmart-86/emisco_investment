@@ -54,7 +54,7 @@ export async function POST(req: NextRequest) {
     const result: PaystackVerificationResponse = await res.json();
 
     if (result.status && result.data.status === 'success') {
-      // ✅ Update Order in Database
+      // Update Order in Database
       const updatedOrder = await prisma.order.update({
         where: { id: orderId },
         data: {
@@ -64,7 +64,15 @@ export async function POST(req: NextRequest) {
       });
 
       // 📧 Send Confirmation Email (Async)
-      sendOrderNotification(orderId, 'PAID').catch(console.error);
+      // Intelligent Trigger: If the order was created within the last 65s, 
+      // the 'sendOrderNotificationWithSync' function will handle the confirmation at the 60s mark.
+      // If the order is older, we send it immediately.
+      const orderAgeMs = Date.now() - new Date(updatedOrder.createdAt).getTime();
+      if (orderAgeMs > 65000) {
+        sendOrderNotification(orderId, 'PAID').catch(console.error);
+      } else {
+        console.log(`Verification: Sync window is still open. Deferring confirmation to Sync task.`);
+      }
 
       return NextResponse.json({
         success: true,
