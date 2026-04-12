@@ -176,7 +176,7 @@ export async function sendDeliveryStatusUpdateEmail(orderId: string, status: str
     const mailOptions = {
        from: `"Emisco Investment Ltd" <${process.env.SMTP_USER}>`,
       to: order.user.email,
-      subject: `Delivery Update - Order #${order.id.slice(0, 8).toUpperCase()}`,
+      subject: `Delivery Update - OrderId:${order.id.slice(0, 8).toUpperCase()}`,
       html: `
         <!DOCTYPE html>
         <html>
@@ -189,10 +189,10 @@ export async function sendDeliveryStatusUpdateEmail(orderId: string, status: str
             </tr>
             <tr>
               <td style="padding: 40px 30px; text-align: center;">
-                <div style="font-size: 14px; text-transform: uppercase; color: #718096; font-weight: 700; margin-bottom: 10px;">New Status</div>
+                <div style="font-size: 14px; text-transform: uppercase; color: #718096; font-weight: 700; margin-bottom: 10px;">Delivery Status</div>
                 <div style="font-size: 32px; font-weight: 800; color: ${color};">${status.replace(/_/g, ' ')}</div>
                 
-                <p style="color: #4a5568; margin-top: 30px; line-height: 1.6;">Hi ${order.user.name}, your order <b>#${order.id.slice(0, 8).toUpperCase()}</b> has progressed to its next stage!</p>
+                <p style="color: #4a5568; margin-top: 30px; line-height: 1.6;">Hi ${order.user.name}, your order with this id <b>#${order.id.slice(0, 8).toUpperCase()}</b> has progressed to it's next stage!</p>
                 
                 <div style="margin-top: 40px;">
                   <a href="${process.env.NEXT_PUBLIC_BASE_URL}/order-confirmation?orderId=${order.id}" style="background: ${PRIMARY_COLOR}; color: white; padding: 15px 25px; border-radius: 12px; text-decoration: none; font-weight: 700;">Track Your Package</a>

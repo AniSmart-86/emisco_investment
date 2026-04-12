@@ -25,6 +25,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Image from 'next/image';
 import Link from 'next/link';
+import { toast } from 'sonner';
 
 interface OrderItem {
   id: string;
@@ -50,10 +51,11 @@ interface Order {
 
 export default function OrderDetailsPage() {
   const { id } = useParams();
-  const { user } = useAuthStore();
+  const { user, token } = useAuthStore();
   const router = useRouter();
   const [order, setOrder] = useState<Order | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isPaying, setIsPaying] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -80,6 +82,36 @@ export default function OrderDetailsPage() {
 
     fetchOrder();
   }, [id, user, router]);
+
+  const handlePayNow = async () => {
+    if (!order || !user || !token) return;
+    
+    setIsPaying(true);
+    try {
+      const res = await fetch('/api/payments/initialize', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          email: user.email,
+          amount: order.totalAmount * 100,
+          orderId: order.id,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to initialize payment');
+      
+      window.location.href = data.data.authorization_url;
+    } catch (error) {
+      console.error('Pay Now Error:', error);
+      toast.error(error instanceof Error ? error.message : 'Could not initialize payment');
+    } finally {
+      setIsPaying(false);
+    }
+  };
 
   if (!user) return null;
 
@@ -139,6 +171,37 @@ export default function OrderDetailsPage() {
           animate={{ opacity: 1, y: 0 }}
           className="max-w-5xl mx-auto space-y-8"
         >
+          {order.paymentStatus !== 'PAID' && (
+            <div className="bg-amber-500/10 border border-amber-500/20 rounded-[2rem] p-6 flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl shadow-amber-500/5">
+              <div className="flex items-center gap-4 text-center md:text-left">
+                <div className="w-12 h-12 bg-amber-500/20 rounded-2xl flex items-center justify-center shrink-0">
+                  <AlertCircle className="w-6 h-6 text-amber-500" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold">Payment Required</h3>
+                  <p className="text-sm text-muted-foreground italic">Your order is placed but payment is pending. Complete it now to avoid delivery delays.</p>
+                </div>
+              </div>
+              <Button 
+                onClick={handlePayNow}
+                disabled={isPaying}
+                className="bg-pure-green hover:bg-pure-green-hover text-white rounded-xl px-8 py-6 font-bold shadow-lg shadow-pure-green/20 w-full md:w-auto"
+              >
+                {isPaying ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                    Initializing...
+                  </>
+                ) : (
+                  <>
+                    <CreditCard className="w-5 h-5 mr-2" />
+                    Complete Payment ₦{order.totalAmount.toLocaleString()}
+                  </>
+                )}
+              </Button>
+            </div>
+          )}
+
           {/* Header */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
             <div>

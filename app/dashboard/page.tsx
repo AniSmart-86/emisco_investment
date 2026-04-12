@@ -5,17 +5,19 @@ import { useOrderStore } from '@/lib/store/orderStore';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Package, Truck, User, LogOut, ChevronRight, Loader2 } from 'lucide-react';
+import { Package, Truck, User, LogOut, ChevronRight, Loader2, CreditCard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
+import { toast } from 'sonner';
 
 export default function DashboardPage() {
-  const { user, logout } = useAuthStore();
+  const { user, token, logout } = useAuthStore();
   const { orders, isLoading, fetchOrders } = useOrderStore();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState('orders');
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+  const [isPaying, setIsPaying] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) {
@@ -35,6 +37,36 @@ export default function DashboardPage() {
   const handleLogout = async () => {
     await logout();
     router.push('/');
+  };
+
+  const handlePayNow = async (orderId: string, amount: number) => {
+    if (!user || !token) return;
+    
+    setIsPaying(orderId);
+    try {
+      const res = await fetch('/api/payments/initialize', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          email: user.email,
+          amount: amount * 100, // Paystack expects kobo
+          orderId,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to initialize payment');
+      
+      window.location.href = data.data.authorization_url;
+    } catch (error) {
+      console.error('Pay Now Error:', error);
+      toast.error(error instanceof Error ? error.message : 'Could not initialize payment');
+    } finally {
+      setIsPaying(null);
+    }
   };
 
   const getStatusSteps = (status: string) => {
@@ -150,6 +182,22 @@ export default function DashboardPage() {
                           <span className="text-sm font-bold">₦{order.totalAmount.toLocaleString()}</span>
                         </div>
                         <div className="flex justify-end items-center gap-2 md:col-span-2">
+                           {order.paymentStatus !== 'PAID' && (
+                             <Button 
+                               size="sm"
+                               variant="default"
+                               className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-[10px] uppercase shadow-lg shadow-emerald-500/20"
+                               onClick={() => handlePayNow(order.id, order.totalAmount)}
+                               disabled={isPaying === order.id}
+                             >
+                               {isPaying === order.id ? (
+                                 <Loader2 className="w-3 h-3 animate-spin mr-1" />
+                               ) : (
+                                 <CreditCard className="w-3 h-3 mr-1" />
+                               )}
+                               Pay Now
+                             </Button>
+                           )}
                            <Button 
                               variant="outline" 
                               size="sm"
