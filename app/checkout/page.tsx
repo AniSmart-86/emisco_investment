@@ -62,8 +62,8 @@ const handlePlaceOrder = async (e: React.FormEvent) => {
   }
 
   if (!user) {
-    toast.error('You must be logged in');
-    router.push('/login');
+    toast.error('You must be logged in to complete your checkout');
+    router.push('/login?callbackUrl=/checkout');
     return;
   }
 
@@ -90,7 +90,7 @@ const handlePlaceOrder = async (e: React.FormEvent) => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         email: user.email,
-        amount: finalTotal * 100,
+        amount: finalTotal * 100, 
         orderId: order.id, 
       }),
     });

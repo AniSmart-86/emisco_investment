@@ -11,6 +11,7 @@ export async function GET(request: Request) {
 
     const where: Prisma.ProductWhereInput = {
       isActive: true,
+      stock: { gt: 0 },
     };
 
     if (category && category !== 'All') {

@@ -1,40 +1,24 @@
-'use client';
+"use client"
 
-import { useAuthStore } from '@/lib/store/authStore';
-import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
-import {
-  LayoutDashboard,
-  Package,
-  ShoppingCart,
-  Users,
-  BarChart3,
-  PlusCircle,
-  LogOut,
-  Menu,
-  X,
-  Plus,
-  ArrowUpRight,
-  TrendingUp,
-  Truck,
-  Image as ImageIcon,
-  Upload,
-  MoreVertical
-} from 'lucide-react';
-
-import Image from 'next/image';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import Link from 'next/link';
-import { toast } from 'sonner';
 import { Product, Order, DashboardData, User } from '@/lib/types';
 import axios from 'axios';
 import { api } from '@/lib/api';
 import { DeliveryStatus } from '@/lib/generated/prisma/enums';
 import AnalyticsView from '@/components/admin/AnalyticsView';
-import { Edit, Trash2 } from 'lucide-react';
+import ProductsView from '@/components/admin/ProductsView';
+import OrdersView from '@/components/admin/OrdersView';
+import UsersView from '@/components/admin/UsersView';
+import { ArrowUpRight, BarChart3, ImageIcon, LayoutDashboard, LogOut, Menu, Package, PlusCircle, ShoppingCart, TrendingUp, Truck, Upload, Users, X } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
+import { useAuthStore } from '@/lib/store/authStore';
+import { motion } from 'framer-motion';
+import { useState, useEffect } from 'react';
+import { toast } from 'sonner';
+import Image from 'next/image';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 export default function AdminDashboard() {
   const { user, logout } = useAuthStore();
@@ -73,12 +57,7 @@ export default function AdminDashboard() {
     }
   }, [activeTab, editingProduct]);
                            
-// type DeliveryStatus =
-//   | 'PENDING'
-//   | 'PROCESSING'
-//   | 'SHIPPED'
-//   | 'OUT_FOR_DELIVERY'
-//   | 'DELIVERED';
+
 
 
 
@@ -377,71 +356,15 @@ export default function AdminDashboard() {
             )}
 
             {activeTab === 'products' && (
-              <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="">
-        
-
-                <div className="flex justify-between mb-6 gap-4">
-                  <h3 className="text-lg md:text-xl font-bold">Inventory</h3>
-                  <Button onClick={() => setActiveTab('add-product')} className="bg-pure-green hover:bg-pure-green-hover text-white rounded-xl font-bold gap-2 px-3 md:px-4">
-                    <Plus className="w-4 h-4" /> <span className="hidden sm:inline">Add Product</span>
-                  </Button>
-                </div>
-                <Card className="lg:col-span-2 border-border/50 bg-card rounded-[2.5rem] overflow-hidden p-2 md:p-8 shadow-xl">
-                  <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-pure-green/20">
-                    <Table>
-                      <TableHeader>
-                        <TableRow className="border-border">
-                          <TableHead className="font-bold min-w-[200px]">Part Name</TableHead>
-                          <TableHead className="font-bold">Category</TableHead>
-                          <TableHead className="font-bold">Price</TableHead>
-                          <TableHead className="font-bold">Stock</TableHead>
-                          <TableHead className="font-bold text-right">Actions</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {products.map((prod) => (
-                          <TableRow key={prod.id} className="border-border hover:bg-muted/30 whitespace-nowrap">
-                            <TableCell className="font-bold">
-                              {prod.name}
-                              {!prod.isActive && (
-                                <span className="ml-2 px-2 py-0.5 rounded-full bg-red-100 text-red-600 text-[10px] font-bold uppercase tracking-tighter">Archived</span>
-                              )}
-                            </TableCell>
-                            <TableCell className="text-[10px] font-bold text-pure-green uppercase tracking-widest">{prod.category}</TableCell>
-                            <TableCell className="font-bold">₦{prod.price?.toLocaleString()}</TableCell>
-                            <TableCell>
-                              <span className={`font-mono text-sm ${prod.stock < 10 ? 'text-red-500 font-bold' : ''}`}>
-                                {prod.stock} Units
-                              </span>
-                            </TableCell>
-                            <TableCell className="text-right">
-                              <div className="flex justify-end gap-2">
-                                <Button 
-                                  variant="outline" 
-                                  size="sm" 
-                                  className="h-8 rounded-lg border-border hover:bg-muted font-bold text-[10px] uppercase"
-                                  onClick={() => handleEditProduct(prod)}
-                                >
-                                  <Edit className="w-3 h-3 mr-1" /> Edit
-                                </Button>
-                                <Button 
-                                  variant="destructive" 
-                                  size="sm" 
-                                  className="h-8 rounded-lg font-bold text-[10px] uppercase"
-                                  onClick={() => deleteProduct(prod.id)}
-                                >
-                                  <Trash2 className="w-3 h-3 mr-1" /> Delete
-                                </Button>
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                </Card>
-          
-              </motion.div>
+              <ProductsView 
+                products={products}
+                onAddProduct={() => {
+                   setEditingProduct(null);
+                   setActiveTab('add-product');
+                }}
+                onEditProduct={handleEditProduct}
+                onDeleteProduct={deleteProduct}
+              />
             )}
 
             {activeTab === 'add-product' && (
@@ -589,115 +512,17 @@ export default function AdminDashboard() {
 
             {/* USERS */}
           {activeTab === 'users' && (
-            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="">
-                <Card className="border-border/50 bg-card rounded-[2.5rem] p-2 md:p-8 shadow-2xl">
-                  <div className="overflow-x-auto">
-                    <Table>
-                      <TableHeader>
-                        <TableRow className="border-border hover:bg-transparent">
-                          <TableHead className="font-bold">User Information</TableHead>
-                          <TableHead className="font-bold">Contact Email</TableHead>
-                          <TableHead className="font-bold">Assigned Role</TableHead>
-                          <TableHead className="font-bold text-right px-6">Actions</TableHead>
-                        </TableRow>
-                      </TableHeader>
-
-                      <TableBody>
-                        {users?.map(u=> (
-                          <TableRow key={u.id} className="border-border hover:bg-muted/30 whitespace-nowrap">
-                            <TableCell className="font-bold py-6 px-4">{u.name}</TableCell>
-                            <TableCell className="text-sm italic text-muted-foreground">{u.email}</TableCell>
-                            <TableCell>
-                                <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${u.role === 'ADMIN' ? 'bg-pure-green/10 text-pure-green border border-pure-green/20' : 'bg-muted text-muted-foreground'}`}>
-                                    {u.role}
-                                </span>
-                            </TableCell>
-
-                            <TableCell className="text-right px-6">
-                              <Button 
-                                variant="destructive" 
-                                size="sm" 
-                                className="h-8 rounded-lg font-bold text-[10px] uppercase"
-                                onClick={() => deleteUser(u.id)}
-                              >
-                                <Trash2 className="w-3 h-3 mr-1" /> Remove
-                              </Button>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                </Card>
-            </motion.div>
+            <UsersView 
+              users={users}
+              onDeleteUser={deleteUser}
+            />
           )}
 
           {activeTab === 'orders' && (
-            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="grow">
-               <Card className="border-border/50 bg-card rounded-[2.5rem] p-8 shadow-2xl overflow-hidden">
-                <div className="flex justify-between items-center mb-8 gap-4">
-                   <h3 className="text-lg md:text-2xl font-bold">All Orders</h3>
-                   <div className="flex gap-2">
-                      <span className="px-3 py-1 rounded-full bg-muted text-[10px] font-bold uppercase tracking-wider">{orders.length} Total</span>
-                   </div>
-                </div>
-                <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="border-border hover:bg-transparent">
-                      <TableHead className="font-bold">Order Details</TableHead>
-                      <TableHead className="font-bold">Customer</TableHead>
-                      <TableHead className="font-bold">Payment</TableHead>
-                      <TableHead className="font-bold">Amount</TableHead>
-                      <TableHead className="font-bold text-right">Delivery Status</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {orders.map((o) => (
-                      <TableRow key={o.id} className="border-border hover:bg-muted/30">
-                        <TableCell className="py-6">
-                           <div className="text-xs font-mono text-muted-foreground mb-1 uppercase">#{o.id.slice(0, 8)}</div>
-                           <div className="text-xs font-semibold">{new Date(o.createdAt).toLocaleDateString()}</div>
-                        </TableCell>
-                        <TableCell>
-                           <div className="font-bold text-sm">{o.user?.name || 'Guest'}</div>
-                           <div className="text-[10px] text-muted-foreground italic">{o.user?.email || 'N/A'}</div>
-                        </TableCell>
-                        <TableCell>
-                          <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                            o.paymentStatus === 'PAID' ? 'bg-emerald-500/10 text-emerald-500' : 
-                            o.paymentStatus === 'FAILED' ? 'bg-red-500/10 text-red-500' : 
-                            'bg-amber-500/10 text-amber-500'
-                          }`}>
-                            {o.paymentStatus}
-                          </span>
-                        </TableCell>
-                        <TableCell className="font-bold">₦{o.totalAmount?.toLocaleString()}</TableCell>
-                        <TableCell className="text-right">
-                          <select
-                            className="bg-muted/50 border-none rounded-xl px-3 py-2 text-xs font-bold focus:ring-2 focus:ring-pure-green/50 cursor-pointer outline-none transition-all"
-                            value={o.deliveryStatus}
-                            onChange={(e) =>
-                              updateOrderStatus(
-                                o.id,
-                                e.target.value as DeliveryStatus
-                              )
-                            }
-                          >
-                            <option value="PENDING">Pending</option>
-                            <option value="PROCESSING">Processing</option>
-                            <option value="SHIPPED">Shipped</option>
-                            <option value="OUT_FOR_DELIVERY">Out for Delivery</option>
-                            <option value="DELIVERED">Delivered</option>
-                          </select>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-                </div>
-              </Card>
-            </motion.div>
+            <OrdersView 
+              orders={orders}
+              onUpdateStatus={updateOrderStatus}
+            />
           )}
 
             {activeTab === 'analytics' && (

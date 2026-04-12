@@ -1,10 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'; // Assuming these exist or using basic versions
 import { 
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
-  BarChart, Bar, Cell, PieChart, Pie 
+  BarChart, Bar, Cell
 } from 'recharts';
 import { api } from '@/lib/api';
 import { motion } from 'framer-motion';
@@ -43,11 +42,11 @@ export default function AnalyticsView() {
     );
   }
 
-  if (!data) return <div>Failed to load analytics data.</div>;
+  if (!data) return <div>Failed to load analytics data. No sales has been made.</div>;
 
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
-      {/* 📈 SALES CHART */}
+      {/* 📈 SALES CHART */} 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div className="bg-card border border-border/50 rounded-[2.5rem] p-8 shadow-xl">
           <div className="flex justify-between items-center mb-8">

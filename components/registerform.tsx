@@ -41,7 +41,7 @@ export default function RegisterForm({
       login(user, token);
 
       toast.success(`Account created for ${user.name}!`);
-        router.push('/dashboard');
+      router.push(redirectTo);
       
     } catch (error) {
       if (axios.isAxiosError(error)) {

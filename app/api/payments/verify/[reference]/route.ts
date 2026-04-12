@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { z } from 'zod';
+import { sendOrderNotification } from '@/lib/email-service';
 
 /* ================= VALIDATION ================= */
 
@@ -61,6 +62,9 @@ export async function POST(req: NextRequest) {
           reference: reference, // Save reference to prevent duplicate processing
         },
       });
+
+      // 📧 Send Confirmation Email (Async)
+      sendOrderNotification(orderId, 'PAID').catch(console.error);
 
       return NextResponse.json({
         success: true,

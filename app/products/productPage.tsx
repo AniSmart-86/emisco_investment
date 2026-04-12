@@ -18,10 +18,12 @@ import { Product, Category } from '@/lib/types';
 
 export default function ProductsPage({
   initialCategory,
+  initialSearch,
 }: {
   initialCategory?: string;
+  initialSearch?: string;
 }) {
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState(initialSearch || '');
   const [activeCategory, setActiveCategory] = useState(
     initialCategory || 'All'
   );
@@ -43,7 +45,7 @@ export default function ProductsPage({
     [categories]
   );
 
-  // Sync initial category from URL
+  // Sync initial category and search from URL
   useEffect(() => {
     if (initialCategory) {
       const matched = categoryNames.find(
@@ -51,7 +53,10 @@ export default function ProductsPage({
       );
       if (matched) setActiveCategory(matched);
     }
-  }, [initialCategory, categoryNames]);
+    if (initialSearch) {
+      setSearch(initialSearch);
+    }
+  }, [initialCategory, initialSearch, categoryNames]);
 
   // Fetch products
   useEffect(() => {

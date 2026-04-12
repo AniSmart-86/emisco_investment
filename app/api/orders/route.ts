@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { verifyToken } from '@/lib/auth';
 import { z } from 'zod';
+import { sendOrderNotification } from '@/lib/email-service';
 
 const orderItemSchema = z.object({
   productId: z.string().uuid(),
@@ -134,6 +135,9 @@ export async function POST(request: Request) {
       maxWait: 15000, // ✅ Wait up to 15s to get a connection (Prevents P2028)
       timeout: 30000, // ✅ Allow up to 30s for the transaction to complete
     });
+
+    // 📧 Send "Order Received" Email (Async)
+    sendOrderNotification(order.id, 'CREATED').catch(console.error);
 
 
     return NextResponse.json({ order }, { status: 201 });

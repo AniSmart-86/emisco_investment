@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { z } from 'zod';
+import { sendDeliveryStatusUpdateEmail } from '@/lib/email-service';
 
 const statusSchema = z.enum([
   'PENDING',
@@ -23,6 +24,9 @@ export async function PUT(
       where: { id },
       data: { deliveryStatus },
     });
+
+    // 📧 Send Status Update Email (Async)
+    sendDeliveryStatusUpdateEmail(id, deliveryStatus).catch(console.error);
 
 
     return NextResponse.json({ order: updatedOrder });

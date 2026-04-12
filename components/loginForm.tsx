@@ -38,8 +38,10 @@ export default function LoginForm({
 
       toast.success(`Welcome back, ${user.name}!`);
 
-      // 🔥 Role-based redirect
-      if (user.role === 'ADMIN') {
+      // 🔥 Role-based redirect (callbackUrl prioritized)
+      if (callbackUrl) {
+         router.push(callbackUrl);
+      } else if (user.role === 'ADMIN') {
         router.push('/admin');
       } else {
         router.push('/dashboard');
