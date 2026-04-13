@@ -14,12 +14,12 @@ interface UsersViewProps {
 
 export default function UsersView({ users, onDeleteUser }: UsersViewProps) {
   return (
-    <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="">
-      <Card className="border-border/50 bg-card rounded-[2.5rem] p-2 md:p-8 shadow-2xl">
-        <div className="overflow-x-auto">
+    <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="grow min-w-0">
+      <Card className="border-border/50 bg-card rounded-[2.5rem] p-2 md:p-8 shadow-2xl overflow-hidden">
+        <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-pure-green/20">
           <Table>
             <TableHeader>
-              <TableRow className="border-border hover:bg-transparent">
+              <TableRow className="border-border hover:bg-transparent whitespace-nowrap">
                 <TableHead className="font-bold">User Information</TableHead>
                 <TableHead className="font-bold">Contact Email</TableHead>
                 <TableHead className="font-bold">Residential Address</TableHead>

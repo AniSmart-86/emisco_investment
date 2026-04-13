@@ -248,7 +248,7 @@ export default function AdminDashboard() {
         </aside>
 
         {/* Main Workspace */}
-        <main className={`grow transition-all duration-300 p-4 lg:ml-72 md:p-12`}>
+        <main className={`grow transition-all duration-300 p-4 lg:ml-72 md:p-12 min-w-0 overflow-x-hidden`}>
           <div className="max-w-7xl mx-auto space-y-12">
             <div className="flex justify-between items-end">
               <div>
@@ -298,7 +298,8 @@ export default function AdminDashboard() {
                       <h3 className="text-md md:text-xl font-bold">Recent Transactions</h3>
                       <Button onClick={() => setActiveTab('orders')} variant="outline" className="rounded-xl font-bold text-xs uppercase tracking-widest h-8">View All</Button>
                     </div>
-                    <Table>
+                    <div className="overflow-x-auto">
+                      <Table>
                       <TableHeader>
                         <TableRow className="border-border hover:bg-transparent">
                           <TableHead className="font-bold">Order ID</TableHead>
@@ -309,7 +310,7 @@ export default function AdminDashboard() {
                       </TableHeader>
                       <TableBody>
                         {orders.map((order) => (
-                          <TableRow key={order.id} className="border-border hover:bg-muted/30">
+                          <TableRow key={order.id} className="border-border hover:bg-muted/30 whitespace-nowrap">
                             <TableCell className="font-mono text-xs">{order.id.slice(0, 6).toUpperCase()}...</TableCell>
                             <TableCell className="font-semibold text-xs">{order.user?.name || 'Unknown'}</TableCell>
                             <TableCell>
@@ -323,6 +324,7 @@ export default function AdminDashboard() {
                         ))}
                       </TableBody>
                     </Table>
+                    </div>
                   </Card>
 
                   {/* Analytics Preview */}

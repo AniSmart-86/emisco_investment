@@ -15,18 +15,18 @@ interface OrdersViewProps {
 
 export default function OrdersView({ orders, onUpdateStatus }: OrdersViewProps) {
     return (
-        <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="grow">
-            <Card className="border-border/50 bg-card rounded-[2.5rem] p-8 shadow-2xl overflow-hidden">
+        <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="grow min-w-0">
+            <Card className="border-border/50 bg-card rounded-[2.5rem] p-4 md:p-8 shadow-2xl overflow-hidden">
                 <div className="flex justify-between items-center mb-8 gap-4">
                     <h3 className="text-lg md:text-2xl font-bold">Order Management</h3>
                     <div className="flex gap-2">
                         <span className="px-3 py-1 rounded-full bg-muted text-[10px] font-bold uppercase tracking-wider">{orders.length} Total</span>
                     </div>
                 </div>
-                <div className="overflow-x-auto">
+                <div className="overflow-x-auto min-w-0 scrollbar-thin scrollbar-thumb-pure-green/20">
                     <Table>
                         <TableHeader>
-                            <TableRow className="border-border hover:bg-transparent">
+                            <TableRow className="border-border hover:bg-transparent whitespace-nowrap">
                                 <TableHead className="font-bold">Order Details</TableHead>
                                 <TableHead className="font-bold">Customer</TableHead>
                                 <TableHead className="font-bold">Payment</TableHead>
@@ -37,7 +37,7 @@ export default function OrdersView({ orders, onUpdateStatus }: OrdersViewProps) 
                         </TableHeader>
                         <TableBody>
                             {orders.map((o) => (
-                                <TableRow key={o.id} className="border-border hover:bg-muted/30">
+                                <TableRow key={o.id} className="border-border hover:bg-muted/30 whitespace-nowrap">
                                     <TableCell className="py-6">
                                         <div className="text-xs font-mono text-muted-foreground mb-1 uppercase">#{o.id.slice(0, 8)}</div>
                                         <div className="text-xs font-semibold">{new Date(o.createdAt).toLocaleDateString()}</div>

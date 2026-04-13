@@ -5,6 +5,7 @@ import { Card } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Plus, Edit, Trash2 } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 interface ProductsViewProps {
   products: Product[];
@@ -20,7 +21,7 @@ export default function ProductsView({
   onDeleteProduct 
 }: ProductsViewProps) {
   return (
-    <div className="space-y-6">
+    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="grow min-w-0 space-y-4">
       <div className="flex justify-between mb-6 gap-4">
         <h3 className="text-lg md:text-xl font-bold">Inventory Management</h3>
         <Button onClick={onAddProduct} className="bg-pure-green hover:bg-pure-green-hover text-white rounded-xl font-bold gap-2 px-3 md:px-4">
@@ -33,7 +34,7 @@ export default function ProductsView({
           <Table>
             <TableHeader>
               <TableRow className="border-border">
-                <TableHead className="font-bold min-w-[200px]">Part Name</TableHead>
+                <TableHead className="font-bold min-w-[20px] md:min-w-[200px]">Part Name</TableHead>
                 <TableHead className="font-bold">Category</TableHead>
                 <TableHead className="font-bold">Price</TableHead>
                 <TableHead className="font-bold">Stock</TableHead>
@@ -82,6 +83,7 @@ export default function ProductsView({
           </Table>
         </div>
       </Card>
-    </div>
+    
+     </motion.div>
   );
 }
