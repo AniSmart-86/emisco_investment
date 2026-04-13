@@ -45,6 +45,10 @@ interface Order {
   totalAmount: number;
   paymentStatus: string;
   deliveryStatus: string;
+  shippingState?: string;
+  shippingAddress?: string;
+  transportCompany?: string;
+  terminalAddress?: string;
   createdAt: string;
   orderItems: OrderItem[];
 }
@@ -337,17 +341,52 @@ export default function OrderDetailsPage() {
                   <div>
                     <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block mb-2">Recipient</span>
                     <p className="font-bold">{user.name}</p>
-                    <p className="text-sm text-muted-foreground italic">{user.email}</p>
+                    <p className="text-sm text-muted-foreground italic mb-4">{user.email}</p>
+                    
+                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block mb-2">Residential Address</span>
+                    <p className="text-sm font-semibold text-foreground/80 leading-relaxed italic border-l-2 border-pure-green/30 pl-3">
+                       {order.shippingAddress || (user.address || 'No residential address on file')}
+                    </p>
                   </div>
                   <div>
-                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block mb-1">Status</span>
+                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block mb-1">Current Status</span>
                     <div className="flex items-center gap-2 text-pure-green font-bold">
                       <Truck className="w-4 h-4" />
-                      <span className="text-sm">{order.deliveryStatus}</span>
+                      <span className="text-sm italic">{order.deliveryStatus}</span>
                     </div>
                   </div>
                 </div>
               </Card>
+
+              {/* Logistics/Terminal Info */}
+              {order.shippingState?.toLowerCase() !== 'lagos' && order.transportCompany && (
+                <Card className="border-border/50 bg-card rounded-[2.5rem] p-8 shadow-xl relative overflow-hidden">
+                   <div className="absolute top-0 right-0 w-24 h-24 bg-pure-green/5 rounded-full blur-2xl" />
+                   <h3 className="text-xl font-bold mb-6 flex items-center gap-3">
+                     <div className="p-2 bg-pure-green rounded-lg">
+                        <MapPin className="w-4 h-4 text-white" />
+                     </div>
+                     Logistics Details
+                   </h3>
+                   <div className="space-y-6">
+                      <div>
+                        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block mb-1">State</span>
+                        <p className="font-bold text-pure-green">{order.shippingState}</p>
+                      </div>
+                      <div>
+                        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block mb-1">Transport Company</span>
+                        <p className="font-bold">{order.transportCompany}</p>
+                      </div>
+                      {order.terminalAddress && (
+                        <div className="p-4 bg-muted/50 rounded-2xl border border-border">
+                          <span className="text-[10px] font-bold text-pure-green uppercase tracking-widest block mb-2">Pickup Terminal</span>
+                          <p className="text-sm font-bold leading-relaxed">{order.terminalAddress}</p>
+                          <p className="text-[10px] text-muted-foreground mt-2 italic">Please bring a valid ID for pickup.</p>
+                        </div>
+                      )}
+                   </div>
+                </Card>
+              )}
 
               <Card className="border-border/50 bg-card rounded-[2.5rem] p-8 shadow-xl">
                 <h3 className="text-xl font-bold mb-6 flex items-center gap-3">

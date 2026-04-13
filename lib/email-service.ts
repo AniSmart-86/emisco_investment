@@ -168,7 +168,7 @@ export async function sendDeliveryStatusUpdateEmail(orderId: string, status: str
 
     const color = statusColors[status] || PRIMARY_COLOR;
     const isLagos = order.shippingState?.toLowerCase() === 'lagos';
-    const showPickupInstructions = status === 'DELIVERED' && !isLagos && order.terminalAddress;
+    const showPickupInstructions = (status === 'DELIVERED' || status === 'SHIPPED') && !isLagos && order.terminalAddress;
 
     const mailOptions = {
        from: `"Emisco Investment Ltd" <${process.env.SMTP_USER}>`,
@@ -196,7 +196,9 @@ export async function sendDeliveryStatusUpdateEmail(orderId: string, status: str
                 ${showPickupInstructions ? `
                 <div style="margin-top: 40px; padding: 25px; background: #f0fff4; border: 2px dashed #48bb78; border-radius: 16px;">
                   <h3 style="margin-top: 0; color: #2f855a;">📍 Pickup Instructions</h3>
-                  <p style="color: #4a5568; margin-bottom: 5px;">Your package has arrived at the terminal!</p>
+                  <p style="color: #4a5568; margin-bottom: 5px;">
+                    ${status === 'DELIVERED' ? 'Your package has arrived at the terminal!' : 'Your package has been dispatched to the pickup terminal.'}
+                  </p>
                   <div style="font-size: 18px; font-weight: 800; color: #1a202c; margin: 10px 0;">${order.terminalAddress}</div>
                   <p style="font-size: 12px; color: #718096; margin-bottom: 0;">Please bring a valid ID and your Order ID for collection.</p>
                 </div>

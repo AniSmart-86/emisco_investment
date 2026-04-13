@@ -4,8 +4,9 @@
 import { Card } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { motion } from 'framer-motion';
-import { DeliveryStatus } from '@/lib/generated/prisma';
 import { Order } from '@/lib/types';
+import { DeliveryStatus } from '@prisma/client';
+
 
 interface OrdersViewProps {
     orders: Order[];
@@ -54,13 +55,16 @@ export default function OrdersView({ orders, onUpdateStatus }: OrdersViewProps) 
                                         </span>
                                     </TableCell>
                                     <TableCell>
-                                        <div className="text-xs font-bold">{o.shippingState || 'Lagos'}</div>
+                                        <div className="text-xs font-bold text-pure-green mb-1">{o.shippingState || 'Lagos'}</div>
+                                        <div className="text-[10px] text-muted-foreground font-semibold mb-2 line-clamp-2" title={o.shippingAddress || 'No residential address provided'}>
+                                            🏠 {o.shippingAddress || 'N/A'}
+                                        </div>
                                         {o.transportCompany && (
-                                            <div className="text-[10px] text-muted-foreground">{o.transportCompany}</div>
-                                        )}
-                                        {o.terminalAddress && (
-                                            <div className="text-[10px] text-pure-green font-bold truncate max-w-[120px]" title={o.terminalAddress}>
-                                                {o.terminalAddress}
+                                            <div className="p-2 rounded-lg bg-muted/50 border border-border">
+                                                <div className="text-[9px] font-bold uppercase text-muted-foreground mb-1">Via {o.transportCompany}</div>
+                                                <div className="text-[9px] font-bold text-foreground leading-tight">
+                                                    📍 {o.terminalAddress || 'Terminal Pending'}
+                                                </div>
                                             </div>
                                         )}
                                     </TableCell>

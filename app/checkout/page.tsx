@@ -11,7 +11,7 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/lib/store/authStore';
-import { TRANSPORT_COMPANIES, NIGERIAN_STATES } from '@/lib/logistics-data';
+import { TRANSPORT_COMPANIES, NIGERIAN_STATES, getTerminalAddress } from '@/lib/logistics-data';
 
 
 export default function CheckoutPage() {
@@ -25,8 +25,19 @@ export default function CheckoutPage() {
 
 
   useEffect(()=>{
-localStorage.removeItem("paymentInfo");
-  },[]);
+    localStorage.removeItem("paymentInfo");
+    
+    // ✅ Pre-fill form from user profile
+    if (user) {
+      setForm(prev => ({
+        ...prev,
+        name: user.name || '',
+        email: user.email || '',
+        address: user.address || '',
+        phone: user.phone || ''
+      }));
+    }
+  },[user]);
   
   const [form, setForm] = useState({
     name: '',
@@ -85,6 +96,7 @@ const handlePlaceOrder = async (e: React.FormEvent) => {
       shippingState: form.state,
       transportCompany: !isLagos ? deliveryMethod : null,
       address: form.address,
+      phone: form.phone,
       deliveryFee: isLagos ? 0 : deliveryFee,
     });
 
@@ -258,6 +270,27 @@ const handlePlaceOrder = async (e: React.FormEvent) => {
                     </button>
                   ))}
                 </div>
+
+                {deliveryMethod && (
+                  <motion.div 
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    className="mt-8 p-6 bg-pure-green/10 rounded-2xl border border-pure-green/20"
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="p-2 bg-pure-green rounded-lg shrink-0">
+                        <Truck className="w-4 h-4 text-white" />
+                      </div>
+                      <div>
+                        <div className="text-xs font-bold text-pure-green uppercase tracking-wider mb-1">Pickup Terminal</div>
+                        <div className="font-bold text-lg">{getTerminalAddress(deliveryMethod, form.state)}</div>
+                        <p className="text-xs text-muted-foreground mt-1 italic">
+                          Please note: Large parts are bulky. Ensure you have a suitable vehicle for pickup.
+                        </p>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
               </motion.section>
             )}
           </AnimatePresence>

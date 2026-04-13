@@ -18,7 +18,9 @@ import { toast } from 'sonner';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { DeliveryStatus } from '@/lib/generated/prisma';
+import { DeliveryStatus } from '@prisma/client';
+
+
 
 export default function AdminDashboard() {
   const { user, logout } = useAuthStore();

@@ -15,6 +15,7 @@ const orderSchema = z.object({
   shippingState: z.string().optional(),
   transportCompany: z.string().optional().nullable(),
   address: z.string(),
+  phone: z.string().optional(),
   deliveryFee: z.number().optional().default(0),
 });
 
@@ -103,7 +104,10 @@ export async function POST(request: Request) {
       // ✅ 1.5 Update User Address
       await tx.user.update({
         where: { id: payload.id },
-        data: { address: data.address }
+        data: { 
+          address: data.address,
+          phone: data.phone || undefined
+        }
       });
 
       // ✅ 2. Terminal Address Lookup
@@ -132,6 +136,7 @@ export async function POST(request: Request) {
           userId: payload.id,
           totalAmount: finalTotal,
           shippingState: data.shippingState,
+          shippingAddress: data.address,
           transportCompany: data.transportCompany,
           terminalAddress: terminalAddress,
           deliveryFee: deliveryFee,

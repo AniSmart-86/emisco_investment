@@ -37,7 +37,7 @@ export async function POST(request: Request) {
     const token = await signToken({ id: user.id, role: user.role });
 
     const response = NextResponse.json({
-      user: { id: user.id, name: user.name, email: user.email, role: user.role },
+      user: { id: user.id, name: user.name, email: user.email, role: user.role, address: user.address, phone: user.phone },
       token,
     }, { status: 201 });
 
