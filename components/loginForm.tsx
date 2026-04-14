@@ -23,6 +23,12 @@ export default function LoginForm({
   const login = useAuthStore((state) => state.login);
   const router = useRouter();
 
+  // Prefetch for speed
+  const prefetchTarget = callbackUrl || '/dashboard';
+  useState(() => {
+    if (prefetchTarget) router.prefetch(prefetchTarget);
+  });
+
   // const redirectTo = callbackUrl || '/dashboard';
 
   const handleLogin = async (e: React.FormEvent) => {

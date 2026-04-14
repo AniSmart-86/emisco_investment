@@ -237,3 +237,57 @@ export async function sendDeliveryStatusUpdateEmail(orderId: string, status: str
     console.error('Email Status Update Error:', error);
   }
 }
+
+/**
+ * Sends customer feedback from the contact form to the admin.
+ */
+export async function sendContactFeedbackEmail(data: { name: string; email: string; phone: string; message: string }) {
+  try {
+    const mailOptions = {
+      from: `"Emisco Contact Form" <${process.env.SMTP_USER}>`,
+      to: process.env.SMTP_USER, // Send to self (admin)
+      replyTo: data.email,
+      subject: `New Customer Feedback - ${data.name}`,
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <body style="margin: 0; padding: 20px; background-color: #f7fafc; font-family: sans-serif;">
+          <table cellpadding="0" cellspacing="0" style="max-width: 600px; margin: auto; background: white; border-radius: 20px; overflow: hidden; border: 1px solid #edf2f7;">
+            <tr>
+              <td style="background: ${PRIMARY_COLOR}; padding: 30px; text-align: center;">
+                <h1 style="color: white; margin: 0; font-size: 20px;">Support Request</h1>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding: 40px 30px;">
+                <div style="background: #f7fafc; padding: 25px; border-radius: 12px; margin-bottom: 25px;">
+                   <h2 style="margin-top: 0; font-size: 18px; color: #1a202c;">Customer Details</h2>
+                   <p style="margin: 5px 0; color: #4a5568;"><b>Name:</b> ${data.name}</p>
+                   <p style="margin: 5px 0; color: #4a5568;"><b>Email:</b> ${data.email}</p>
+                   <p style="margin: 5px 0; color: #4a5568;"><b>Phone:</b> ${data.phone}</p>
+                </div>
+                
+                <h3 style="color: #1a202c;">Message Content:</h3>
+                <div style="background: #fffaf0; padding: 20px; border-left: 4px solid #f6ad55; border-radius: 8px; color: #2d3748; line-height: 1.6; font-style: italic;">
+                  "${data.message}"
+                </div>
+
+                <div style="margin-top: 40px; text-align: center; font-size: 12px; color: #718096;">
+                  Received via Emisco Website Contact Form
+                </div>
+              </td>
+            </tr>
+          </table>
+        </body>
+        </html>
+      `,
+    };
+
+    await transporter.sendMail(mailOptions);
+    console.log(`Contact feedback email sent from ${data.email}`);
+  } catch (error) {
+    console.error('Contact Email Error:', error);
+    throw error;
+  }
+}
+

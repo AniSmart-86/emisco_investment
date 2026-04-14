@@ -27,6 +27,12 @@ export default function RegisterForm({
   const login = useAuthStore((state) => state.login);
   const router = useRouter();
 
+  // Prefetch for speed
+  const prefetchTarget = callbackUrl || '/dashboard';
+  useState(() => {
+    if (prefetchTarget) router.prefetch(prefetchTarget);
+  });
+
   const redirectTo = callbackUrl || '/dashboard';
 
   const handleRegister = async (e: React.FormEvent) => {
