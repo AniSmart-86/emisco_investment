@@ -168,54 +168,54 @@ export default function DashboardPage() {
                         </div>
                       </CardHeader>
                       <CardContent className="p-6">
-                      <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
-                        <div>
-                          <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block mb-1">Date</span>
-                          <span className="text-sm font-semibold">{new Date(order.createdAt).toLocaleDateString()}</span>
-                        </div>
-                        <div>
-                          <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block mb-1">Items</span>
-                          <span className="text-sm font-semibold">{order.orderItems?.length || 0} Parts</span>
-                        </div>
-                        <div>
-                          <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block mb-1">Total</span>
-                          <span className="text-sm font-bold">₦{order.totalAmount.toLocaleString()}</span>
-                        </div>
-                        <div className="flex justify-end items-center gap-2 md:col-span-2">
-                           {order.paymentStatus !== 'PAID' && (
+                        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 md:gap-6">
+                          <div>
+                            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block mb-1">Date</span>
+                            <span className="text-sm font-semibold">{new Date(order.createdAt).toLocaleDateString()}</span>
+                          </div>
+                          <div>
+                            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block mb-1">Items</span>
+                            <span className="text-sm font-semibold">{order.orderItems?.length || 0} Parts</span>
+                          </div>
+                          <div>
+                            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block mb-1">Total</span>
+                            <span className="text-sm font-bold">₦{order.totalAmount.toLocaleString()}</span>
+                          </div>
+                          <div className="col-span-2 md:col-span-2 flex flex-col sm:flex-row md:justify-end items-stretch sm:items-center gap-2 mt-4 md:mt-0">
+                             {order.paymentStatus !== 'PAID' && (
+                               <Button 
+                                 size="sm"
+                                 variant="default"
+                                 className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-[10px] uppercase shadow-lg shadow-emerald-500/20 w-full sm:w-auto"
+                                 onClick={() => handlePayNow(order.id, order.totalAmount)}
+                                 disabled={isPaying === order.id}
+                               >
+                                 {isPaying === order.id ? (
+                                   <Loader2 className="w-3 h-3 animate-spin mr-1" />
+                                 ) : (
+                                   <CreditCard className="w-3 h-3 mr-1" />
+                                 )}
+                                 {isPaying === order.id ? 'Processing...' : 'Pay Now'}
+                               </Button>
+                             )}
                              <Button 
-                               size="sm"
-                               variant="default"
-                               className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-[10px] uppercase shadow-lg shadow-emerald-500/20"
-                               onClick={() => handlePayNow(order.id, order.totalAmount)}
-                               disabled={isPaying === order.id}
+                                variant="outline" 
+                                size="sm"
+                                className="rounded-xl font-bold text-[10px] uppercase border-border/50 hover:bg-pure-green hover:text-white transition-all w-full sm:w-auto"
+                                onClick={() => {
+                                  setSelectedOrderId(order.id);
+                                  setActiveTab('tracking');
+                                }}
                              >
-                               {isPaying === order.id ? (
-                                 <Loader2 className="w-3 h-3 animate-spin mr-1" />
-                               ) : (
-                                 <CreditCard className="w-3 h-3 mr-1" />
-                               )}
-                               Pay Now
+                                <Truck className="w-3 h-3 mr-1" /> Track
                              </Button>
-                           )}
-                           <Button 
-                              variant="outline" 
-                              size="sm"
-                              className="rounded-xl font-bold text-[10px] uppercase border-border/50 hover:bg-pure-green hover:text-white transition-all"
-                              onClick={() => {
-                                setSelectedOrderId(order.id);
-                                setActiveTab('tracking');
-                              }}
-                           >
-                              Track
-                           </Button>
-                           <Link href={`/orders/${order.id}`}>
-                             <Button variant="ghost" size="sm" className="text-pure-green font-bold group text-[10px] uppercase">
-                                Details <ChevronRight className="ml-1 w-3 h-3 transition-transform group-hover:translate-x-1" />
-                             </Button>
-                           </Link>
+                             <Link href={`/orders/${order.id}`} className="w-full sm:w-auto">
+                               <Button variant="ghost" size="sm" className="w-full text-pure-green font-bold group text-[10px] uppercase">
+                                  Details <ChevronRight className="ml-1 w-3 h-3 transition-transform group-hover:translate-x-1" />
+                               </Button>
+                             </Link>
+                          </div>
                         </div>
-                      </div>
                     </CardContent>
                   </Card>
                 ))}
