@@ -26,6 +26,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Image from 'next/image';
 import Link from 'next/link';
 import { toast } from 'sonner';
+import { EMISCO_OFFICE_ADDRESS } from '@/lib/logistics-data';
 
 interface OrderItem {
   id: string;
@@ -328,9 +329,6 @@ export default function OrderDetailsPage() {
                     <span className="text-3xl font-extrabold text-pure-green">₦{order.totalAmount.toLocaleString()}</span>
                   </div>
                 </div>
-                <Button className="w-full mt-8 bg-dark-green hover:bg-emerald-900 text-white rounded-2xl py-6 font-bold shadow-lg shadow-emerald-500/10">
-                  Download Invoice
-                </Button>
               </Card>
 
               <Card className="border-border/50 bg-card rounded-[2.5rem] p-8 shadow-xl">
@@ -359,7 +357,29 @@ export default function OrderDetailsPage() {
               </Card>
 
               {/* Logistics/Terminal Info */}
-              {order.shippingState?.toLowerCase() !== 'lagos' && order.transportCompany && (
+              {order.shippingState?.toLowerCase() === 'lagos' ? (
+                <Card className="border-border/50 bg-card rounded-[2.5rem] p-8 shadow-xl relative overflow-hidden">
+                   <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/5 rounded-full blur-2xl" />
+                   <h3 className="text-xl font-bold mb-6 flex items-center gap-3">
+                     <div className="p-2 bg-emerald-500 rounded-lg">
+                        <MapPin className="w-4 h-4 text-white" />
+                     </div>
+                     Pickup Information
+                   </h3>
+                   <div className="space-y-6">
+                      <div className="p-4 bg-emerald-500/10 rounded-2xl border border-emerald-500/20">
+                        <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest block mb-2">Lagos Office Address</span>
+                        <p className="text-sm font-bold leading-relaxed">{EMISCO_OFFICE_ADDRESS}</p>
+                      </div>
+                      <div className="flex items-start gap-3 p-4 bg-muted/50 rounded-2xl border border-border">
+                         <AlertCircle className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                         <p className="text-xs text-muted-foreground italic">
+                           For home delivery arrangements within Lagos, please contact our support team.
+                         </p>
+                      </div>
+                   </div>
+                </Card>
+              ) : order.transportCompany && (
                 <Card className="border-border/50 bg-card rounded-[2.5rem] p-8 shadow-xl relative overflow-hidden">
                    <div className="absolute top-0 right-0 w-24 h-24 bg-pure-green/5 rounded-full blur-2xl" />
                    <h3 className="text-xl font-bold mb-6 flex items-center gap-3">

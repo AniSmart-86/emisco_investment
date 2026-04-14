@@ -4,14 +4,14 @@ import { useState, useEffect } from 'react';
 import { useCartStore } from '@/lib/store/cartStore';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image'
-import { ShieldCheck, Truck, CreditCard, ChevronLeft, AlertCircle } from 'lucide-react';
+import { ShieldCheck, Truck, CreditCard, ChevronLeft, AlertCircle, MapPin } from 'lucide-react';
 import Link from 'next/link';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/lib/store/authStore';
-import { TRANSPORT_COMPANIES, NIGERIAN_STATES, getTerminalAddress } from '@/lib/logistics-data';
+import { TRANSPORT_COMPANIES, NIGERIAN_STATES, getTerminalAddress, EMISCO_OFFICE_ADDRESS } from '@/lib/logistics-data';
 
 
 export default function CheckoutPage() {
@@ -170,7 +170,7 @@ const handlePlaceOrder = async (e: React.FormEvent) => {
                   value={form.name}
                   onChange={handleInputChange}
                   className="w-full bg-card border border-border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-pure-green/50"
-                  placeholder="John Doe"
+                  placeholder="John Smith"
                   required
                 />
               </div>
@@ -236,6 +236,37 @@ const handlePlaceOrder = async (e: React.FormEvent) => {
               </div>
             </form>
           </section>
+
+          {/* Lagos Pickup Info */}
+          <AnimatePresence>
+            {isLagos && (
+              <motion.section
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                className="bg-emerald-500/5 border border-emerald-500/20 rounded-[2rem] p-8"
+              >
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-10 h-10 bg-emerald-500 rounded-xl flex items-center justify-center">
+                    <MapPin className="text-white w-6 h-6" />
+                  </div>
+                  <h2 className="text-xl font-bold">Lagos Office Pickup</h2>
+                </div>
+                <p className="text-muted-foreground mb-6">
+                  Items can be collected directly from our main branch in Olodi Apapa. 
+                  <span className="block mt-2 font-bold text-foreground">For doorstep delivery within Lagos, please contact our customer support team after placing your order.</span>
+                </p>
+                
+                <div className="p-6 bg-emerald-500/10 rounded-2xl border border-emerald-500/20">
+                  <div className="text-xs font-bold text-emerald-600 uppercase tracking-widest mb-2">Office Address</div>
+                  <div className="font-bold text-lg leading-snug">{EMISCO_OFFICE_ADDRESS}</div>
+                  <p className="text-xs text-muted-foreground mt-4 italic flex items-center gap-2">
+                    <AlertCircle className="w-3 h-3" /> Pickup available Mon - Sat (8am - 5pm)
+                  </p>
+                </div>
+              </motion.section>
+            )}
+          </AnimatePresence>
 
           {/* Delivery Suggestion */}
           <AnimatePresence>
@@ -356,8 +387,8 @@ const handlePlaceOrder = async (e: React.FormEvent) => {
                </div>
                ): (
                 <div className="flex justify-between text-muted-foreground">
-                 <span>Delivery Fee</span>
-                 <span className="text-pure-green font-bold">Free</span>
+                 <span>Delivery</span>
+                 <span className="text-pure-green font-bold">No delivery</span>
                </div>
                )}
                <div className="flex justify-between items-end pt-4">

@@ -1,6 +1,7 @@
 import nodemailer from 'nodemailer';
 import prisma from './prisma';
 import { Order, OrderItem } from './types';
+import { EMISCO_OFFICE_ADDRESS } from './logistics-data';
 
 const transporter = nodemailer.createTransport({
   service: 'gmail', // Standardizes Gmail settings
@@ -39,7 +40,7 @@ export async function sendOrderNotificationWithSync(orderId: string, delayMs: nu
 
       // 2. Dynamic Decision: "Capture" the state after 60 seconds
       // Determine which version of the email to send based on current status
-      const type = order.paymentStatus === 'PAID' ? 'PAID' : 'CREATED';
+      const type = order.paymentStatus === 'PAID' ? 'PAID' : 'PENDING';
       
       await sendOrderNotification(orderId, type, order);
       
@@ -53,7 +54,7 @@ export async function sendOrderNotificationWithSync(orderId: string, delayMs: nu
 /**
  * Core notification function for both immediate (PAID) and delayed (CREATED) emails.
  */
-export async function sendOrderNotification(orderId: string, type: 'CREATED' | 'PAID', preloadedOrder?: Order) {
+export async function sendOrderNotification(orderId: string, type: 'PENDING' | 'PAID', preloadedOrder?: Order) {
   try {
     const order = preloadedOrder || await prisma.order.findUnique({
       where: { id: orderId },
@@ -116,10 +117,10 @@ export async function sendOrderNotification(orderId: string, type: 'CREATED' | '
             </tr>
             <tr>
               <td style="padding: 40px 30px;">
-                <h2 style="color: #1a202c;">${type === 'PAID' ? 'Confirmation' : 'Order Received'}</h2>
+                <h2 style="color: #1a202c; text-align: center;">${type === 'PAID' ? 'Confirmation' : 'Order Received'}</h2>
                 <p style="color: #4a5568; line-height: 1.6;">Hi ${order.user?.name}, ${statusText}</p>
                 <div style="background: #f7fafc; padding: 20px; margin: 20px 0; border-radius: 12px;">
-                   <b>Order ID:</b> #${order.id.toUpperCase().slice(0, 12)}
+                   <b>Order ID:</b> #${order.id.toUpperCase()}
                 </div>
                 <table style="width: 100%; border-collapse: collapse;">
                   <thead>
@@ -134,7 +135,7 @@ export async function sendOrderNotification(orderId: string, type: 'CREATED' | '
                    <h3 style="color: ${SECONDARY_COLOR};">Total: ₦${order.totalAmount.toLocaleString()}</h3>
                 </div>
                 <div style="margin-top: 40px; text-align: center;">
-                  <a href="${process.env.NEXT_PUBLIC_BASE_URL}/order-confirmation?orderId=${order.id}" style="background: ${SECONDARY_COLOR}; color: white; padding: 15px 25px; border-radius: 12px; text-decoration: none; font-weight: 700;">View Order Details</a>
+                  <a href="${process.env.NEXT_PUBLIC_BASE_URL}/orders/${order.id}" style="background: ${SECONDARY_COLOR}; color: white; padding: 15px 25px; border-radius: 12px; text-decoration: none; font-weight: 700;">View Order Details</a>
                 </div>
               </td>
             </tr>
@@ -168,7 +169,8 @@ export async function sendDeliveryStatusUpdateEmail(orderId: string, status: str
 
     const color = statusColors[status] || PRIMARY_COLOR;
     const isLagos = order.shippingState?.toLowerCase() === 'lagos';
-    const showPickupInstructions = (status === 'DELIVERED' || status === 'SHIPPED') && !isLagos && order.terminalAddress;
+    const showLogisticsInstructions = (status === 'DELIVERED' || status === 'SHIPPED') && !isLagos && order.terminalAddress;
+    const showLagosInstructions = (status === 'DELIVERED' || status === 'SHIPPED') && isLagos;
 
     const mailOptions = {
        from: `"Emisco Investment Ltd" <${process.env.SMTP_USER}>`,
@@ -193,7 +195,7 @@ export async function sendDeliveryStatusUpdateEmail(orderId: string, status: str
                 <div style="font-size: 32px; font-weight: 800; color: ${color};">${status.replace(/_/g, ' ')}</div>
                 <p style="color: #4a5568; margin-top: 30px;">Hi ${order.user?.name}, your order <b>#${order.id.slice(0, 8).toUpperCase()}</b> has updated status!</p>
                 
-                ${showPickupInstructions ? `
+                ${showLogisticsInstructions ? `
                 <div style="margin-top: 40px; padding: 25px; background: #f0fff4; border: 2px dashed #48bb78; border-radius: 16px;">
                   <h3 style="margin-top: 0; color: #2f855a;">📍 Pickup Instructions</h3>
                   <p style="color: #4a5568; margin-bottom: 5px;">
@@ -204,8 +206,22 @@ export async function sendDeliveryStatusUpdateEmail(orderId: string, status: str
                 </div>
                 ` : ''}
 
+                ${showLagosInstructions ? `
+                <div style="margin-top: 40px; padding: 25px; background: #f0fff4; border: 2px dashed #48bb78; border-radius: 16px;">
+                  <h3 style="margin-top: 0; color: #2f855a;">🏢 Lagos Office Pickup</h3>
+                  <p style="color: #4a5568; margin-bottom: 5px;">
+                    Your order is ready for collection at our main office branch.
+                  </p>
+                  <div style="font-size: 16px; font-weight: 800; color: #1a202c; margin: 10px 0;">${EMISCO_OFFICE_ADDRESS}</div>
+                  <div style="background: #ffffff; padding: 12px; border-radius: 8px; margin-top: 15px; text-align: left; border: 1px solid #e2e8f0;">
+                    <p style="font-size: 12px; color: #4a5568; margin: 0;"><b>Home Delivery:</b> Contact our support team for doorstep arrangements within Lagos.</p>
+                  </div>
+                  <p style="font-size: 11px; color: #718096; margin-top: 15px; margin-bottom: 0;">Available Mon - Sat (8am - 5pm).</p>
+                </div>
+                ` : ''}
+
                 <div style="margin-top: 40px;">
-                  <a href="${process.env.NEXT_PUBLIC_BASE_URL}/order-confirmation?orderId=${order.id}" style="background: ${PRIMARY_COLOR}; color: white; padding: 15px 25px; border-radius: 12px; text-decoration: none;">Track Your Package</a>
+                  <a href="${process.env.NEXT_PUBLIC_BASE_URL}/orders/${order.id}" style="background: ${PRIMARY_COLOR}; color: white; padding: 15px 25px; border-radius: 12px; text-decoration: none;">Track Your Package</a>
                 </div>
               </td>
             </tr>

@@ -11,6 +11,8 @@ export const TRANSPORT_COMPANIES = [
   "GUO Transport"
 ];
 
+export const EMISCO_OFFICE_ADDRESS = "245, Kirikiri Road, Jakande Trailer, Truck Park by Berger Suya Bus Stop, Olodi Apapa, Lagos.";
+
 export const NIGERIAN_STATES = [
   "Abia", "Adamawa", "Akwa Ibom", "Anambra", "Bauchi", "Bayelsa", "Benue", "Borno", 
   "Cross River", "Delta", "Ebonyi", "Edo", "Ekiti", "Enugu", "FCT (Abuja)", "Gombe", "Imo", 

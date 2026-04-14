@@ -147,7 +147,7 @@ export async function POST(request: Request) {
               return {
                 productId: item.productId,
                 quantity: item.quantity,
-                price: product.price, // ✅ NEVER trust frontend price
+                price: product.price, 
                 productName: product.name,
                 productImage: product.image,
               };
