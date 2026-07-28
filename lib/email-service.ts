@@ -49,7 +49,7 @@ function buildEmailWrapper(content: string, previewText: string = '') {
           
           <!-- HEADER -->
           <tr>
-            <td style="background:linear-gradient(135deg,${COLORS.darkGreen} 0%,#1a5c3a 100%);padding:36px 40px;text-align:center;">
+            <td style="background:linear-gradient(135deg,${COLORS.darkGreen} 0%,#1a5c3a 100%);padding:26px 30px;text-align:center;">
               <div style="display:inline-block;background:rgba(255,255,255,0.12);padding:10px;border-radius:16px;margin-bottom:16px;">
                 <img src="${EMISCO_LOGO}" alt="Emisco" width="48" height="48" style="display:block;border-radius:10px;" />
               </div>
@@ -174,7 +174,7 @@ export async function sendOrderNotificationWithSync(orderId: string, delayMs: nu
 /**
  * Core order notification — supports both PENDING and PAID states.
  */
-export async function sendOrderNotification(orderId: string, type: 'PENDING' | 'PAID', preloadedOrder?: Order) {
+export async function sendOrderNotification(orderId: string, type: 'PENDING' | 'PAID', preloadedOrder?: any) {
   try {
     const order = preloadedOrder || await prisma.order.findUnique({
       where: { id: orderId },
@@ -195,18 +195,31 @@ export async function sendOrderNotification(orderId: string, type: 'PENDING' | '
 
     const itemsHtml = buildItemsRows(order.orderItems as OrderItem[]);
 
-    const deliverySection = order.shippingAddress ? `
+    const isPickup = order.deliveryMethod === 'pickup';
+    const deliverySection = isPickup ? `
+      <tr>
+        <td style="padding:24px 40px 0;">
+          <div style="background:${COLORS.lightGreen};border-radius:16px;padding:20px;border:1px solid ${COLORS.pureGreen}30;">
+            <p style="margin:0 0 6px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:${COLORS.pureGreen};">🏢 Store Pick-up Location</p>
+            <p style="margin:0;font-size:14px;color:${COLORS.text};font-weight:700;">${EMISCO_OFFICE_ADDRESS}</p>
+            <p style="margin:6px 0 0;font-size:12px;color:${COLORS.muted};"><strong>Working Hours:</strong> Mon – Sat, 8:00 AM – 5:00 PM</p>
+            <p style="margin:4px 0 0;font-size:12px;color:${COLORS.pureGreen};font-weight:700;">💡 Please present your Order Reference #${shortId} upon collection.</p>
+          </div>
+        </td>
+      </tr>
+    ` : order.shippingAddress ? `
       <tr>
         <td style="padding:24px 40px 0;">
           <div style="background:${COLORS.bg};border-radius:16px;padding:20px;border:1px solid ${COLORS.border};">
-            <p style="margin:0 0 6px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:${COLORS.muted};">Delivery Info</p>
+            <p style="margin:0 0 6px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:${COLORS.muted};">🚚 Home / Doorstep Delivery</p>
             <p style="margin:0;font-size:13px;color:${COLORS.text};font-weight:600;">${order.shippingAddress}</p>
-            ${order.shippingState ? `<p style="margin:4px 0 0;font-size:12px;color:${COLORS.muted};">${order.shippingState}</p>` : ''}
-            <p style="margin:8px 0 0;font-size:12px;color:${COLORS.amber};font-weight:700;">📞 Our team will contact you to discuss delivery pricing before shipping.</p>
+            ${order.nearestBusStop ? `<p style="margin:4px 0 0;font-size:12px;color:${COLORS.muted};">🚏 <strong>Nearest Bus Stop:</strong> ${order.nearestBusStop}</p>` : ''}
+            <p style="margin:10px 0 0;font-size:12px;color:${COLORS.amber};font-weight:700;background:#fffbeb;padding:8px 12px;border-radius:8px;border:1px solid ${COLORS.amber}30;">📞 Our logistics team will call you shortly to discuss delivery charges.</p>
           </div>
         </td>
       </tr>
     ` : '';
+
 
     const ctaUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/orders/${order.id}`;
 
@@ -454,3 +467,143 @@ export async function sendContactFeedbackEmail(data: { name: string; email: stri
     throw error;
   }
 }
+
+
+/**
+ * Sends a professional Welcome Email to newly registered users.
+ */
+export async function sendWelcomeEmail(email: string, name: string) {
+  try {
+    const shopUrl = `${process.env.NEXT_PUBLIC_BASE_URL || 'https://emisco.com'}/products`;
+
+    const bodyContent = `
+      <!-- WELCOME HERO BANNER -->
+      <tr>
+        <td style="padding:40px 40px 24px;text-align:center;">
+          <div style="font-size:56px;margin-bottom:12px;line-height:1;">🎉</div>
+          ${statusBadge('WELCOME TO EMISCO', COLORS.pureGreen, COLORS.lightGreen)}
+          <h2 style="margin:20px 0 10px;font-size:26px;font-weight:800;color:${COLORS.text};">Welcome aboard, ${name}!</h2>
+          <p style="margin:0;font-size:14px;color:${COLORS.muted};line-height:1.7;max-width:440px;margin-left:auto;margin-right:auto;">
+            Thank you for creating an account with <strong>Emisco Investment Limited</strong>. Your one-stop shop for genuine motor parts, truck accessories, and heavy machinery components.
+          </p>
+        </td>
+      </tr>
+
+      <!-- FEATURES CARD -->
+      <tr>
+        <td style="padding:0 40px 28px;">
+          <div style="background:${COLORS.bg};border-radius:20px;padding:24px;border:1px solid ${COLORS.border};">
+            <p style="margin:0 0 16px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;color:${COLORS.muted};">Why Choose Emisco?</p>
+            <table cellpadding="0" cellspacing="0" role="presentation" width="100%">
+              <tr>
+                <td style="padding:10px 0;border-bottom:1px solid ${COLORS.border};">
+                  <span style="font-size:18px;margin-right:10px;">💯</span>
+                  <strong style="font-size:13px;color:${COLORS.text};">100% Genuine OEM Parts</strong>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding:10px 0;border-bottom:1px solid ${COLORS.border};">
+                  <span style="font-size:18px;margin-right:10px;">🚚</span>
+                  <strong style="font-size:13px;color:${COLORS.text};">Fast Pick-up & Delivery Options</strong>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding:10px 0;">
+                  <span style="font-size:18px;margin-right:10px;">📞</span>
+                  <strong style="font-size:13px;color:${COLORS.text};">Dedicated Customer Support</strong>
+                </td>
+              </tr>
+            </table>
+          </div>
+        </td>
+      </tr>
+
+      ${divider}
+
+      <!-- CTA BUTTON -->
+      <tr>
+        <td style="padding:32px 40px;text-align:center;">
+          <a href="${shopUrl}" style="display:inline-block;background:${COLORS.pureGreen};color:${COLORS.white};text-decoration:none;font-size:15px;font-weight:800;padding:16px 40px;border-radius:100px;letter-spacing:0.5px;">
+            Start Exploring Parts →
+          </a>
+        </td>
+      </tr>
+    `;
+
+    await resend.emails.send({
+      from: FROM_EMAIL,
+      to: [email],
+      subject: `🎉 Welcome to Emisco Investment Limited, ${name}!`,
+      html: buildEmailWrapper(bodyContent, `Welcome to Emisco Investment Limited, ${name}! Start exploring genuine motor parts today.`),
+    });
+
+    console.log(`✅ Resend: Welcome email sent to ${email}`);
+  } catch (error) {
+    console.error('❌ Resend Email Error (sendWelcomeEmail):', error);
+  }
+}
+
+
+/**
+ * Sends a 6-Digit Password Reset OTP Email.
+ */
+export async function sendPasswordResetOtpEmail(email: string, name: string, otp: string) {
+  try {
+    const bodyContent = `
+      <!-- LOCK ICON & HEADER -->
+      <tr>
+        <td style="padding:36px 40px 20px;text-align:center;">
+          <div style="font-size:52px;margin-bottom:12px;line-height:1;">🔐</div>
+          ${statusBadge('SECURITY VERIFICATION', COLORS.amber, '#fffbeb')}
+          <h2 style="margin:16px 0 8px;font-size:24px;font-weight:800;color:${COLORS.text};">Password Reset Code</h2>
+          <p style="margin:0;font-size:14px;color:${COLORS.muted};line-height:1.6;">
+            Hi <strong>${name}</strong>, we received a request to reset your password for your Emisco account.
+          </p>
+        </td>
+      </tr>
+
+      <!-- OTP DISPLAY BOX -->
+      <tr>
+        <td style="padding:20px 40px;">
+          <div style="background:${COLORS.darkGreen};border-radius:20px;padding:28px 20px;text-align:center;">
+            <p style="margin:0 0 8px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:rgba(255,255,255,0.6);">Your 6-Digit Verification OTP</p>
+            <div style="font-size:38px;font-weight:900;color:${COLORS.white};letter-spacing:10px;font-family:monospace;margin:12px 0;">${otp}</div>
+            <p style="margin:8px 0 0;font-size:12px;color:#86efac;font-weight:600;">⏰ Expires in 20 minutes</p>
+          </div>
+        </td>
+      </tr>
+
+      <!-- WARNING BOX -->
+      <tr>
+        <td style="padding:16px 40px 24px;">
+          <div style="background:#fff1f2;border:1px solid #fecdd3;border-radius:12px;padding:14px 18px;text-align:center;">
+            <p style="margin:0;font-size:12px;color:#be123c;line-height:1.5;">
+              <strong>Did not request this?</strong> Please ignore this email or contact support if you suspect unauthorized access to your account.
+            </p>
+          </div>
+        </td>
+      </tr>
+
+      ${divider}
+
+      <tr style="padding:24px 40px;text-align:center;">
+        <td style="font-size:12px;color:${COLORS.muted};padding:24px 40px;text-align:center;">
+          If you are having trouble entering the code, please return to the website and select "Resend Code".
+        </td>
+      </tr>
+    `;
+
+    await resend.emails.send({
+      from: FROM_EMAIL,
+      to: [email],
+      subject: `🔑 ${otp} is your Emisco password reset code`,
+      html: buildEmailWrapper(bodyContent, `Your password reset code is ${otp}. Valid for 20 minutes.`),
+    });
+
+    console.log(`✅ Resend: Password reset OTP email sent to ${email}`);
+  } catch (error) {
+    console.error('❌ Resend Email Error (sendPasswordResetOtpEmail):', error);
+    throw error;
+  }
+}
+

@@ -113,7 +113,7 @@ export default function LoginForm({
                   Password
                 </label>
                 <Link
-                  href="#"
+                  href="/forgot-password"
                   className="text-[10px] font-bold text-pure-green uppercase hover:underline"
                 >
                   Forgot?

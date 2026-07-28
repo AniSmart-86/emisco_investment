@@ -41,6 +41,7 @@ export default function CheckoutPage() {
     email: '',
     phone: '',
     address: '',
+    nearestBusStop: '',
   });
 
   // Pre-fill from user profile
@@ -106,6 +107,7 @@ export default function CheckoutPage() {
         address: shippingAddress,
         phone: form.phone,
         deliveryMethod,
+        nearestBusStop: deliveryMethod === 'delivery' ? form.nearestBusStop : undefined,
         // No transport company, no delivery fee from frontend
       });
 
@@ -330,7 +332,7 @@ export default function CheckoutPage() {
                       onChange={handleInputChange}
                       rows={3}
                       className="w-full bg-card border border-border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500/50 resize-none"
-                      placeholder="Enter your full delivery address — Street, City, State…"
+                      placeholder="Enter your full delivery address — Street, Building, City, State…"
                     />
                     {user?.address && form.address === user.address && (
                       <p className="mt-1.5 text-xs text-pure-green font-semibold flex items-center gap-1">
@@ -338,6 +340,22 @@ export default function CheckoutPage() {
                         Auto-filled from your saved profile
                       </p>
                     )}
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-bold text-muted-foreground uppercase tracking-widest mb-2 block">
+                      Nearest Bus Stop / Landmark
+                    </label>
+                    <input
+                      name="nearestBusStop"
+                      value={form.nearestBusStop}
+                      onChange={handleInputChange}
+                      className="w-full bg-card border border-border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                      placeholder="e.g. Berger Bus Stop, Trade Fair, Total Filling Station…"
+                    />
+                    <p className="mt-1.5 text-xs text-muted-foreground">
+                      Helps our delivery team locate you faster.
+                    </p>
                   </div>
 
                   {/* Delivery Price Hint */}
@@ -352,6 +370,7 @@ export default function CheckoutPage() {
                   </div>
                 </motion.div>
               )}
+
             </AnimatePresence>
           </section>
 

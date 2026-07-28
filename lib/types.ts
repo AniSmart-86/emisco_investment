@@ -35,8 +35,10 @@ export interface Order {
   totalAmount: number;
   paymentStatus: 'PENDING' | 'PAID' | 'FAILED';
   deliveryStatus: 'PENDING' | 'PROCESSING' | 'SHIPPED' | 'OUT_FOR_DELIVERY' | 'DELIVERED';
+  deliveryMethod?: 'pickup' | 'delivery' | null;
   shippingState?: string | null;
   shippingAddress?: string | null;
+  nearestBusStop?: string | null;
   transportCompany?: string | null;
   terminalAddress?: string | null;
   deliveryFee?: number;
@@ -51,6 +53,7 @@ export interface Order {
   };
   orderItems?: OrderItem[];
 }
+
 
 export interface OrderItem {
   id: string;

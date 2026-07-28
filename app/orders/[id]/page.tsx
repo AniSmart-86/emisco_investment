@@ -19,7 +19,8 @@ import {
   Calendar,
   ShieldCheck,
   Loader2,
-  AlertCircle
+  AlertCircle,
+  Store,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -46,8 +47,10 @@ interface Order {
   totalAmount: number;
   paymentStatus: string;
   deliveryStatus: string;
+  deliveryMethod?: string | null;
   shippingState?: string;
   shippingAddress?: string;
+  nearestBusStop?: string | null;
   transportCompany?: string;
   terminalAddress?: string;
   createdAt: string;
@@ -317,15 +320,17 @@ export default function OrderDetailsPage() {
                 </h3>
                 <div className="space-y-4">
                   <div className="flex justify-between text-sm font-semibold">
-                    <span className="text-muted-foreground italic">Subtotal</span>
-                    <span>₦{(order.totalAmount - (order.totalAmount > 100000 ? 10000 : 5000)).toLocaleString()}</span>
+                    <span className="text-muted-foreground italic">Items Total</span>
+                    <span>₦{order.totalAmount.toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between text-sm font-semibold">
-                    <span className="text-muted-foreground italic">Shipping Fee</span>
-                    <span>₦{(order.totalAmount > 100000 ? 10000 : 5000).toLocaleString()}</span>
+                    <span className="text-muted-foreground italic">Delivery Fee</span>
+                    <span className="text-amber-500 font-bold">
+                      {order.deliveryMethod === 'pickup' ? 'Free (Pick-up)' : 'To be discussed'}
+                    </span>
                   </div>
                   <div className="pt-4 border-t border-border/50 flex justify-between items-end">
-                    <span className="font-bold">Total Amount</span>
+                    <span className="font-bold">Total Paid</span>
                     <span className="text-3xl font-extrabold text-pure-green">₦{order.totalAmount.toLocaleString()}</span>
                   </div>
                 </div>
@@ -336,16 +341,44 @@ export default function OrderDetailsPage() {
                   <MapPin className="w-5 h-5 text-pure-green" /> Shipping Details
                 </h3>
                 <div className="space-y-6">
+                  {/* Delivery Method Badge */}
+                  {order.deliveryMethod && (
+                    <div>
+                      <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block mb-2">Fulfilment Method</span>
+                      {order.deliveryMethod === 'pickup' ? (
+                        <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 w-fit">
+                          <Store className="w-4 h-4 text-emerald-600" />
+                          <span className="text-sm font-bold text-emerald-600">Store Pick-up</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-blue-500/10 border border-blue-500/20 w-fit">
+                          <Truck className="w-4 h-4 text-blue-500" />
+                          <span className="text-sm font-bold text-blue-500">Delivery</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
                   <div>
                     <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block mb-2">Recipient</span>
                     <p className="font-bold">{user.name}</p>
                     <p className="text-sm text-muted-foreground italic mb-4">{user.email}</p>
-                    
-                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block mb-2">Residential Address</span>
-                    <p className="text-sm font-semibold text-foreground/80 leading-relaxed italic border-l-2 border-pure-green/30 pl-3">
-                       {order.shippingAddress || (user.address || 'No residential address on file')}
-                    </p>
+
+                    {order.deliveryMethod !== 'pickup' && (
+                      <>
+                        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block mb-2">Delivery Address</span>
+                        <p className="text-sm font-semibold text-foreground/80 leading-relaxed italic border-l-2 border-pure-green/30 pl-3">
+                          {order.shippingAddress || 'No address on file'}
+                        </p>
+                        {order.nearestBusStop && (
+                          <p className="mt-2 text-xs text-muted-foreground font-semibold">
+                            🚏 Nearest Bus Stop: <span className="text-foreground">{order.nearestBusStop}</span>
+                          </p>
+                        )}
+                      </>
+                    )}
                   </div>
+
                   <div>
                     <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block mb-1">Current Status</span>
                     <div className="flex items-center gap-2 text-pure-green font-bold">
@@ -356,57 +389,55 @@ export default function OrderDetailsPage() {
                 </div>
               </Card>
 
-              {/* Logistics/Terminal Info */}
-              {order.shippingState?.toLowerCase() === 'lagos' ? (
+              {/* Logistics/Pickup Info based on deliveryMethod */}
+              {order.deliveryMethod === 'pickup' ? (
                 <Card className="border-border/50 bg-card rounded-[2.5rem] p-8 shadow-xl relative overflow-hidden">
                    <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/5 rounded-full blur-2xl" />
                    <h3 className="text-xl font-bold mb-6 flex items-center gap-3">
                      <div className="p-2 bg-emerald-500 rounded-lg">
-                        <MapPin className="w-4 h-4 text-white" />
+                        <Store className="w-4 h-4 text-white" />
                      </div>
-                     Pickup Information
+                     Store Pick-up Info
                    </h3>
-                   <div className="space-y-6">
+                   <div className="space-y-4">
                       <div className="p-4 bg-emerald-500/10 rounded-2xl border border-emerald-500/20">
-                        <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest block mb-2">Lagos Office Address</span>
+                        <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest block mb-2">Office Address</span>
                         <p className="text-sm font-bold leading-relaxed">{EMISCO_OFFICE_ADDRESS}</p>
                       </div>
                       <div className="flex items-start gap-3 p-4 bg-muted/50 rounded-2xl border border-border">
                          <AlertCircle className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
                          <p className="text-xs text-muted-foreground italic">
-                           For home delivery arrangements within Lagos, please contact our support team.
+                           Available Mon – Sat, 8am – 5pm. Please bring your Order ID when collecting.
                          </p>
                       </div>
                    </div>
                 </Card>
-              ) : order.transportCompany && (
+              ) : order.deliveryMethod === 'delivery' ? (
                 <Card className="border-border/50 bg-card rounded-[2.5rem] p-8 shadow-xl relative overflow-hidden">
-                   <div className="absolute top-0 right-0 w-24 h-24 bg-pure-green/5 rounded-full blur-2xl" />
+                   <div className="absolute top-0 right-0 w-24 h-24 bg-blue-500/5 rounded-full blur-2xl" />
                    <h3 className="text-xl font-bold mb-6 flex items-center gap-3">
-                     <div className="p-2 bg-pure-green rounded-lg">
-                        <MapPin className="w-4 h-4 text-white" />
+                     <div className="p-2 bg-blue-500 rounded-lg">
+                        <Truck className="w-4 h-4 text-white" />
                      </div>
-                     Logistics Details
+                     Delivery Details
                    </h3>
-                   <div className="space-y-6">
-                      <div>
-                        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block mb-1">State</span>
-                        <p className="font-bold text-pure-green">{order.shippingState}</p>
+                   <div className="space-y-4">
+                      <div className="p-4 bg-blue-500/10 rounded-2xl border border-blue-500/20">
+                        <span className="text-[10px] font-bold text-blue-500 uppercase tracking-widest block mb-2">Delivery Address</span>
+                        <p className="text-sm font-bold leading-relaxed">{order.shippingAddress}</p>
+                        {order.nearestBusStop && (
+                          <p className="text-xs text-muted-foreground mt-2">🚏 {order.nearestBusStop}</p>
+                        )}
                       </div>
-                      <div>
-                        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block mb-1">Transport Company</span>
-                        <p className="font-bold">{order.transportCompany}</p>
+                      <div className="flex items-start gap-3 p-4 bg-amber-500/5 rounded-2xl border border-amber-500/20">
+                         <AlertCircle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+                         <p className="text-xs text-muted-foreground italic">
+                           Our team will contact you to discuss delivery pricing before shipping.
+                         </p>
                       </div>
-                      {order.terminalAddress && (
-                        <div className="p-4 bg-muted/50 rounded-2xl border border-border">
-                          <span className="text-[10px] font-bold text-pure-green uppercase tracking-widest block mb-2">Pickup Terminal</span>
-                          <p className="text-sm font-bold leading-relaxed">{order.terminalAddress}</p>
-                          <p className="text-[10px] text-muted-foreground mt-2 italic">Please bring a valid ID for pickup.</p>
-                        </div>
-                      )}
                    </div>
                 </Card>
-              )}
+              ) : null}
 
               <Card className="border-border/50 bg-card rounded-[2.5rem] p-8 shadow-xl">
                 <h3 className="text-xl font-bold mb-6 flex items-center gap-3">

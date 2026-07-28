@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { hashPassword, signToken } from '@/lib/auth';
 import { z } from 'zod';
+import { sendWelcomeEmail } from '@/lib/email-service';
 
 const registerSchema = z.object({
   name: z.string().min(2),
@@ -34,7 +35,11 @@ export async function POST(request: Request) {
       },
     });
 
+    // Send Welcome Email asynchronously
+    sendWelcomeEmail(user.email, user.name).catch(err => console.error('Failed to send welcome email:', err));
+
     const token = await signToken({ id: user.id, role: user.role });
+
 
     const response = NextResponse.json({
       user: { id: user.id, name: user.name, email: user.email, role: user.role, address: user.address, phone: user.phone },

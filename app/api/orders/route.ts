@@ -18,6 +18,7 @@ const orderSchema = z.object({
   phone: z.string().optional(),
   deliveryFee: z.number().optional().default(0),
   deliveryMethod: z.enum(['pickup', 'delivery']).optional(),
+  nearestBusStop: z.string().optional(),
 });
 
 export async function GET(request: Request) {
@@ -103,14 +104,22 @@ export async function POST(request: Request) {
       const deliveryFee = 0;
       const finalTotal = subtotal; // Customer pays items only at checkout
 
-      // ✅ 1.5 Update User Address
-      await tx.user.update({
-        where: { id: payload.id },
-        data: { 
-          address: data.address,
-          phone: data.phone || undefined
-        }
-      });
+      // ✅ 1.5 Update User Address & Phone (only for delivery orders)
+      if (data.deliveryMethod === 'delivery') {
+        await tx.user.update({
+          where: { id: payload.id },
+          data: {
+            address: data.address,
+            phone: data.phone || undefined,
+          },
+        });
+      } else if (data.phone) {
+        // Still update phone number regardless
+        await tx.user.update({
+          where: { id: payload.id },
+          data: { phone: data.phone },
+        });
+      }
 
       // ✅ 2. Terminal Address Lookup
       let terminalAddress = null;
@@ -137,19 +146,20 @@ export async function POST(request: Request) {
         data: {
           userId: payload.id,
           totalAmount: finalTotal,
+          deliveryMethod: data.deliveryMethod,
           shippingState: data.shippingState,
           shippingAddress: data.address,
+          nearestBusStop: data.nearestBusStop || null,
           transportCompany: data.transportCompany,
           terminalAddress: terminalAddress,
           deliveryFee: deliveryFee,
           orderItems: {
             create: data.items.map(item => {
               const product = products.find(p => p.id === item.productId)!;
-
               return {
                 productId: item.productId,
                 quantity: item.quantity,
-                price: product.price, 
+                price: product.price,
                 productName: product.name,
                 productImage: product.image,
               };

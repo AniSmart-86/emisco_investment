@@ -1,11 +1,11 @@
 'use client';
 
-
 import { Card } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { motion } from 'framer-motion';
 import { Order } from '@/lib/types';
 import { DeliveryStatus } from '@prisma/client';
+import { Store, Truck } from 'lucide-react';
 
 
 interface OrdersViewProps {
@@ -27,10 +27,10 @@ export default function OrdersView({ orders, onUpdateStatus }: OrdersViewProps) 
                     <Table>
                         <TableHeader>
                             <TableRow className="border-border hover:bg-transparent whitespace-nowrap">
-                                <TableHead className="font-bold">Order Details</TableHead>
+                                <TableHead className="font-bold">Order</TableHead>
                                 <TableHead className="font-bold">Customer</TableHead>
                                 <TableHead className="font-bold">Payment</TableHead>
-                                <TableHead className="font-bold">Logistics</TableHead>
+                                <TableHead className="font-bold">Fulfilment</TableHead>
                                 <TableHead className="font-bold">Amount</TableHead>
                                 <TableHead className="font-bold text-right">Delivery Status</TableHead>
                             </TableRow>
@@ -42,42 +42,79 @@ export default function OrdersView({ orders, onUpdateStatus }: OrdersViewProps) 
                                         <div className="text-xs font-mono text-muted-foreground mb-1 uppercase">#{o.id.slice(0, 8)}</div>
                                         <div className="text-xs font-semibold">{new Date(o.createdAt).toLocaleDateString()}</div>
                                     </TableCell>
+
                                     <TableCell>
                                         <div className="font-bold text-sm">{o.user?.name || 'Guest'}</div>
                                         <div className="text-[10px] text-muted-foreground italic">{o.user?.email || 'N/A'}</div>
+                                        {o.user?.phone && (
+                                            <div className="text-[10px] text-muted-foreground mt-0.5">📞 {o.user.phone}</div>
+                                        )}
                                     </TableCell>
+
                                     <TableCell>
-                                        <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${o.paymentStatus === 'PAID' ? 'bg-emerald-500/10 text-emerald-500' :
-                                                o.paymentStatus === 'FAILED' ? 'bg-red-500/10 text-red-500' :
-                                                    'bg-amber-500/10 text-amber-500'
-                                            }`}>
+                                        <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                                            o.paymentStatus === 'PAID' ? 'bg-emerald-500/10 text-emerald-500' :
+                                            o.paymentStatus === 'FAILED' ? 'bg-red-500/10 text-red-500' :
+                                            'bg-amber-500/10 text-amber-500'
+                                        }`}>
                                             {o.paymentStatus}
                                         </span>
                                     </TableCell>
-                                    <TableCell>
-                                        <div className="text-xs font-bold text-pure-green mb-1">{o.shippingState || 'Lagos'}</div>
-                                        <div className="text-[10px] text-muted-foreground font-semibold mb-2 line-clamp-2" title={o.shippingAddress || 'No residential address provided'}>
-                                            🏠 {o.shippingAddress || 'N/A'}
-                                        </div>
-                                        {o.transportCompany && (
-                                            <div className="p-2 rounded-lg bg-muted/50 border border-border">
-                                                <div className="text-[9px] font-bold uppercase text-muted-foreground mb-1">Via {o.transportCompany}</div>
-                                                <div className="text-[9px] font-bold text-foreground leading-tight">
-                                                    📍 {o.terminalAddress || 'Terminal Pending'}
+
+                                    {/* Fulfilment Column — shows pickup vs delivery with address/bus stop */}
+                                    <TableCell className="max-w-[220px]">
+                                        {o.deliveryMethod === 'pickup' ? (
+                                            <div className="space-y-1">
+                                                <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 w-fit">
+                                                    <Store className="w-3 h-3 text-emerald-600 shrink-0" />
+                                                    <span className="text-[10px] font-bold uppercase text-emerald-600 tracking-wider">Store Pick-up</span>
                                                 </div>
+                                                <div className="text-[10px] text-muted-foreground font-semibold line-clamp-2" title={o.shippingAddress || ''}>
+                                                    📍 {o.shippingAddress || 'Office Address'}
+                                                </div>
+                                            </div>
+                                        ) : o.deliveryMethod === 'delivery' ? (
+                                            <div className="space-y-1">
+                                                <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-blue-500/10 border border-blue-500/20 w-fit">
+                                                    <Truck className="w-3 h-3 text-blue-500 shrink-0" />
+                                                    <span className="text-[10px] font-bold uppercase text-blue-500 tracking-wider">Delivery</span>
+                                                </div>
+                                                <div className="text-[10px] text-muted-foreground font-semibold line-clamp-2" title={o.shippingAddress || ''}>
+                                                    🏠 {o.shippingAddress || 'N/A'}
+                                                </div>
+                                                {o.nearestBusStop && (
+                                                    <div className="text-[10px] text-muted-foreground font-semibold">
+                                                        🚏 {o.nearestBusStop}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ) : (
+                                            // Legacy orders without deliveryMethod field
+                                            <div className="space-y-1">
+                                                <div className="text-xs font-bold text-pure-green mb-1">{o.shippingState || '—'}</div>
+                                                <div className="text-[10px] text-muted-foreground font-semibold line-clamp-2">
+                                                    🏠 {o.shippingAddress || 'N/A'}
+                                                </div>
+                                                {o.transportCompany && (
+                                                    <div className="p-2 rounded-lg bg-muted/50 border border-border">
+                                                        <div className="text-[9px] font-bold uppercase text-muted-foreground mb-1">Via {o.transportCompany}</div>
+                                                        <div className="text-[9px] font-bold text-foreground leading-tight">
+                                                            📍 {o.terminalAddress || 'Terminal Pending'}
+                                                        </div>
+                                                    </div>
+                                                )}
                                             </div>
                                         )}
                                     </TableCell>
+
                                     <TableCell className="font-bold">₦{o.totalAmount?.toLocaleString()}</TableCell>
+
                                     <TableCell className="text-right">
                                         <select
                                             className="bg-muted/50 border-none rounded-xl px-3 py-2 text-xs font-bold focus:ring-2 focus:ring-pure-green/50 cursor-pointer outline-none transition-all"
                                             value={o.deliveryStatus}
                                             onChange={(e) =>
-                                                onUpdateStatus(
-                                                    o.id,
-                                                    e.target.value as DeliveryStatus
-                                                )
+                                                onUpdateStatus(o.id, e.target.value as DeliveryStatus)
                                             }
                                         >
                                             <option value="PENDING">Pending</option>
