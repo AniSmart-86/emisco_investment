@@ -381,9 +381,16 @@ export default function AdminDashboard() {
                     e.preventDefault();
                     setIsSubmitting(true);
                     try {
-                      let imageUrl = newProduct.image;
+                      let imageUrl = newProduct.image; // default: keep existing URL
+
                       if (selectedFile) {
-                        imageUrl = await uploadImage();
+                        const uploaded = await uploadImage();
+                        if (!uploaded) {
+                          // Upload failed, error already toasted inside uploadImage()
+                          setIsSubmitting(false);
+                          return;
+                        }
+                        imageUrl = uploaded;
                       }
 
                       const productData = {
@@ -395,22 +402,22 @@ export default function AdminDashboard() {
                       };
 
                       if (editingProduct) {
-                        // If stock is set to 0 during update, delete it as per request
+                        // If stock is set to 0 during update, archive it
                         if (productData.stock <= 0) {
-                          if (confirm('Setting stock to 0 will remove this product from inventory. Proceed?')) {
+                          if (confirm('Setting stock to 0 will archive this product. Proceed?')) {
                             await api.delete(`/admin/products/${editingProduct.id}`);
-                            toast.success('Product removed due to zero stock');
+                            toast.success('Product archived due to zero stock');
                           } else {
                             setIsSubmitting(false);
                             return;
                           }
                         } else {
                           await api.put(`/admin/products/${editingProduct.id}`, productData);
-                          toast.success('Product updated successfully');
+                          toast.success('Product updated successfully ✓');
                         }
                       } else {
                         await api.post('/admin/products', productData);
-                        toast.success('Product created successfully');
+                        toast.success('Product created successfully ✓');
                       }
 
                       setEditingProduct(null);
@@ -506,9 +513,27 @@ export default function AdminDashboard() {
                         </div>
                       </div>
                     </div>
-                    <Button type="submit" disabled={isSubmitting} className="w-full bg-pure-green hover:bg-pure-green-hover text-white py-8 rounded-2xl text-lg font-bold">
-                      {isSubmitting || uploading ? (editingProduct ? 'Updating...' : 'Creating...') : (editingProduct ? 'Save Changes' : 'Add to Inventory')}
-                    </Button>
+                     <div className="flex gap-3">
+                       {editingProduct && (
+                         <Button
+                           type="button"
+                           variant="outline"
+                           className="flex-1 py-8 rounded-2xl text-lg font-bold border-border"
+                           onClick={() => {
+                             setEditingProduct(null);
+                             setNewProduct({ name: '', price: '', oldPrice: '', stock: '', category: '', description: '', image: '' });
+                             setSelectedFile(null);
+                             setImagePreview(null);
+                             setActiveTab('products');
+                           }}
+                         >
+                           Cancel
+                         </Button>
+                       )}
+                       <Button type="submit" disabled={isSubmitting} className="flex-1 bg-pure-green hover:bg-pure-green-hover text-white py-8 rounded-2xl text-lg font-bold">
+                         {isSubmitting || uploading ? (editingProduct ? 'Updating...' : 'Creating...') : (editingProduct ? 'Save Changes' : 'Add to Inventory')}
+                       </Button>
+                     </div>
                   </form>
                 </Card>
               </motion.div>

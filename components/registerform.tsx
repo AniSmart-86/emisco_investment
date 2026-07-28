@@ -47,7 +47,13 @@ export default function RegisterForm({
       login(user, token);
 
       toast.success(`Account created for ${user.name}!`);
-      router.push(redirectTo);
+      // Use window.location.href when redirecting to callback to ensure
+      // middleware cookie re-validation before landing on /checkout
+      if (callbackUrl) {
+        window.location.href = callbackUrl;
+      } else {
+        router.push('/dashboard');
+      }
       
     } catch (error) {
       if (axios.isAxiosError(error)) {

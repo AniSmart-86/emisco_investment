@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import crypto from 'crypto';
+import { sendOrderNotification } from '@/lib/email-service';
+
 
 export async function POST(req: NextRequest) {
   try {
@@ -41,7 +43,7 @@ export async function POST(req: NextRequest) {
           return NextResponse.json({ message: 'Order already marked as paid' });
       }
 
-      const updatedOrder = await prisma.order.update({
+      await prisma.order.update({
         where: { id: orderId },
         data: {
           paymentStatus: 'PAID',
@@ -49,9 +51,12 @@ export async function POST(req: NextRequest) {
         },
       });
 
+      // 📧 Send confirmation email (Async, non-blocking)
+      sendOrderNotification(orderId, 'PAID').catch(console.error);
+
       return NextResponse.json({
         success: true,
-        order: updatedOrder,
+        message: 'Payment confirmed and email sent',
       });
     }
 
@@ -61,6 +66,7 @@ export async function POST(req: NextRequest) {
             where: { id: orderId },
             data: {
                 paymentStatus: 'FAILED',
+                reference, // 🔥 Save reference even on failure for traceability
             },
         });
 

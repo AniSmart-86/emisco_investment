@@ -17,6 +17,7 @@ const orderSchema = z.object({
   address: z.string(),
   phone: z.string().optional(),
   deliveryFee: z.number().optional().default(0),
+  deliveryMethod: z.enum(['pickup', 'delivery']).optional(),
 });
 
 export async function GET(request: Request) {
@@ -98,8 +99,9 @@ export async function POST(request: Request) {
       }
 
       const isLagos = data.shippingState?.toLowerCase() === 'lagos';
-      const deliveryFee = isLagos ? 0 : (totalItems > 5 ? 10000 : 5000);
-      const finalTotal = subtotal + deliveryFee;
+      // Delivery fee is NOT calculated here — it is discussed with the customer separately
+      const deliveryFee = 0;
+      const finalTotal = subtotal; // Customer pays items only at checkout
 
       // ✅ 1.5 Update User Address
       await tx.user.update({

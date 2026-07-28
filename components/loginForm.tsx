@@ -45,8 +45,10 @@ export default function LoginForm({
       toast.success(`Welcome back, ${user.name}!`);
 
       // 🔥 Role-based redirect (callbackUrl prioritized)
+      // Use window.location.href for callbackUrl to force a full reload,
+      // ensuring middleware re-validates the httpOnly cookie before landing on /checkout
       if (callbackUrl) {
-         router.push(callbackUrl);
+        window.location.href = callbackUrl;
       } else if (user.role === 'ADMIN') {
         router.push('/admin');
       } else {

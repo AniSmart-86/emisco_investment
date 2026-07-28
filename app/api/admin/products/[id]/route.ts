@@ -8,9 +8,11 @@ const updateProductSchema = z.object({
   price: z.number().positive().optional(),
   oldPrice: z.number().positive().optional().nullable(),
   category: z.string().optional(),
-  image: z.string().url().optional(),
+  image: z.string().min(1).optional(), // Accept any non-empty string (Cloudinary URLs, etc.)
   stock: z.number().int().nonnegative().optional(),
+  isActive: z.boolean().optional(), // Allow admin to reactivate archived products
 });
+
 
 export async function PUT(
   request: Request,

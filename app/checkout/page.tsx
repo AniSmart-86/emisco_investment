@@ -3,140 +3,144 @@
 import { useState, useEffect } from 'react';
 import { useCartStore } from '@/lib/store/cartStore';
 import { Button } from '@/components/ui/button';
-import Image from 'next/image'
-import { ShieldCheck, Truck, CreditCard, ChevronLeft, AlertCircle, MapPin } from 'lucide-react';
+import Image from 'next/image';
+import {
+  ShieldCheck,
+  CreditCard,
+  ChevronLeft,
+  AlertCircle,
+  MapPin,
+  Truck,
+  Store,
+  Phone,
+  Clock,
+  CheckCircle2,
+} from 'lucide-react';
 import Link from 'next/link';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/lib/store/authStore';
-import { TRANSPORT_COMPANIES, NIGERIAN_STATES, getTerminalAddress, EMISCO_OFFICE_ADDRESS } from '@/lib/logistics-data';
+import { EMISCO_OFFICE_ADDRESS } from '@/lib/logistics-data';
 
+
+type DeliveryMethod = 'pickup' | 'delivery' | '';
 
 export default function CheckoutPage() {
   const router = useRouter();
   const { user, token } = useAuthStore();
-  const { items, getTotal, getDeliveryFee, clearCart } = useCartStore();
+  const { items, getTotal, clearCart } = useCartStore();
   const subtotal = getTotal();
-  const deliveryFee = getDeliveryFee();
 
+  const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethod>('');
+  const [loading, setLoading] = useState(false);
 
+  const [form, setForm] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    address: '',
+  });
 
+  // Pre-fill from user profile
+  useEffect(() => {
+    localStorage.removeItem('paymentInfo');
 
-  useEffect(()=>{
-    localStorage.removeItem("paymentInfo");
-    
-    // ✅ Pre-fill form from user profile
     if (user) {
       setForm(prev => ({
         ...prev,
         name: user.name || '',
         email: user.email || '',
         address: user.address || '',
-        phone: user.phone || ''
+        phone: user.phone || '',
       }));
     }
-  },[user]);
-  
-  const [form, setForm] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    address: '',
-    city: '',
-    state: '',
-  });
-  
-  const [deliveryMethod, setDeliveryMethod] = useState('');
-  const [loading, setLoading] = useState(false);
-  
-  // Delivery Suggestion Logic
-  const isLagos = form.state.toLowerCase() === 'lagos';
-  const showDeliverySuggestion = !isLagos && form.state !== '';
-  const transportCompanies = TRANSPORT_COMPANIES;
+  }, [user]);
 
-
-
-     const finalTotal =   showDeliverySuggestion ? subtotal + deliveryFee : subtotal;
-
-  
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-const handlePlaceOrder = async (e: React.FormEvent) => {
-  e.preventDefault();
+  const handlePlaceOrder = async (e: React.FormEvent) => {
+    e.preventDefault();
 
-  if (!form.name || !form.email || !form.address) {
-    toast.error('Please fill in all required fields');
-    return;
-  }
-
-  if (!user) {
-    toast.error('You must be logged in to complete your checkout');
-    router.push('/login?callbackUrl=/checkout');
-    return;
-  }
-
-  setLoading(true);
-
-  try {
-
-    const orderItems = items.map(item => ({
-      productId: item.id,
-      quantity: item.quantity,
-    price: item.price,
-    }));
-
-    const orderRes = await api.post('/orders', {
-      items: orderItems,
-      totalAmount: finalTotal,
-      shippingState: form.state,
-      transportCompany: !isLagos ? deliveryMethod : null,
-      address: form.address,
-      phone: form.phone,
-      deliveryFee: isLagos ? 0 : deliveryFee,
-    });
-
-    const order = orderRes.data.order;
-    
-    // ✅ 2. INITIALIZE PAYMENT WITH ORDER ID
-    const paystackRes = await fetch('/api/payments/initialize', {
-      method: 'POST',
-      headers: { 
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify({
-        email: user.email,
-        amount: finalTotal * 100, 
-        orderId: order.id, 
-      }),
-    });
-
-    const paystackData = await paystackRes.json();
-
-    if (!paystackRes.ok) {
-      throw new Error('Payment initialization failed');
+    if (!deliveryMethod) {
+      toast.error('Please select Pick-up or Delivery before proceeding.');
+      return;
     }
 
+    if (deliveryMethod === 'delivery' && !form.address) {
+      toast.error('Please enter a delivery address.');
+      return;
+    }
 
-    clearCart();
-   
-    window.location.href = paystackData.data.authorization_url;
+    if (!form.name || !form.email || !form.phone) {
+      toast.error('Please fill in all required contact fields.');
+      return;
+    }
 
-  } catch (error) {
-    console.error(error);
-    
-    toast.error('Something went wrong');
-  } finally {
-    setLoading(false);
-  }
-};
+    if (!user) {
+      toast.error('You must be logged in to complete your checkout.');
+      router.push('/login?callbackUrl=/checkout');
+      return;
+    }
 
+    setLoading(true);
 
+    try {
+      const orderItems = items.map(item => ({
+        productId: item.id,
+        quantity: item.quantity,
+        price: item.price,
+      }));
+
+      // For pickup, we use the shop address. For delivery, we use the entered address.
+      const shippingAddress = deliveryMethod === 'pickup'
+        ? EMISCO_OFFICE_ADDRESS
+        : form.address;
+
+      const orderRes = await api.post('/orders', {
+        items: orderItems,
+        totalAmount: subtotal,
+        address: shippingAddress,
+        phone: form.phone,
+        deliveryMethod,
+        // No transport company, no delivery fee from frontend
+      });
+
+      const order = orderRes.data.order;
+
+      // Initialize Payment with Paystack
+      const paystackRes = await fetch('/api/payments/initialize', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          email: user.email,
+          amount: subtotal * 100,
+          orderId: order.id,
+        }),
+      });
+
+      const paystackData = await paystackRes.json();
+
+      if (!paystackRes.ok) {
+        throw new Error('Payment initialization failed');
+      }
+
+      clearCart();
+      window.location.href = paystackData.data.authorization_url;
+
+    } catch (error) {
+      console.error(error);
+      toast.error('Something went wrong. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (items.length === 0) {
     return null;
@@ -144,7 +148,10 @@ const handlePlaceOrder = async (e: React.FormEvent) => {
 
   return (
     <div className="container mx-auto px-4 py-12">
-      <Link href="/cart" className="inline-flex items-center text-sm text-muted-foreground hover:text-pure-green mb-8 group">
+      <Link
+        href="/cart"
+        className="inline-flex items-center text-sm text-muted-foreground hover:text-pure-green mb-8 group"
+      >
         <ChevronLeft className="w-4 h-4 mr-1 transition-transform group-hover:-translate-x-1" />
         Back to Cart
       </Link>
@@ -152,19 +159,23 @@ const handlePlaceOrder = async (e: React.FormEvent) => {
       <h1 className="text-4xl font-bold mb-12">Complete Your Order</h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
-        {/* Form Section */}
-        <div className="space-y-12">
+        {/* ─── LEFT: FORM ───────────────────────────────────────── */}
+        <div className="space-y-10">
+
+          {/* STEP 1: Contact Details */}
           <section>
-            <div className="flex items-center gap-3 mb-8">
+            <div className="flex items-center gap-3 mb-6">
               <div className="w-10 h-10 bg-pure-green/10 rounded-xl flex items-center justify-center">
                 <ShieldCheck className="text-pure-green w-6 h-6" />
               </div>
-              <h2 className="text-2xl font-bold">Shipping Details</h2>
+              <h2 className="text-2xl font-bold">Contact Details</h2>
             </div>
-            
-            <form onSubmit={handlePlaceOrder} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="md:col-span-2">
-                <label className="text-sm font-bold text-muted-foreground uppercase tracking-widest mb-2 block">Full Name</label>
+                <label className="text-sm font-bold text-muted-foreground uppercase tracking-widest mb-2 block">
+                  Full Name <span className="text-red-500">*</span>
+                </label>
                 <input
                   name="name"
                   value={form.name}
@@ -175,7 +186,9 @@ const handlePlaceOrder = async (e: React.FormEvent) => {
                 />
               </div>
               <div>
-                <label className="text-sm font-bold text-muted-foreground uppercase tracking-widest mb-2 block">Email Address</label>
+                <label className="text-sm font-bold text-muted-foreground uppercase tracking-widest mb-2 block">
+                  Email Address <span className="text-red-500">*</span>
+                </label>
                 <input
                   name="email"
                   type="email"
@@ -187,7 +200,9 @@ const handlePlaceOrder = async (e: React.FormEvent) => {
                 />
               </div>
               <div>
-                <label className="text-sm font-bold text-muted-foreground uppercase tracking-widest mb-2 block">Phone Number</label>
+                <label className="text-sm font-bold text-muted-foreground uppercase tracking-widest mb-2 block">
+                  Phone Number <span className="text-red-500">*</span>
+                </label>
                 <input
                   name="phone"
                   value={form.phone}
@@ -197,211 +212,234 @@ const handlePlaceOrder = async (e: React.FormEvent) => {
                   required
                 />
               </div>
-              <div className="md:col-span-2">
-                <label className="text-sm font-bold text-muted-foreground uppercase tracking-widest mb-2 block">Residential Address</label>
-                <input
-                  name="address"
-                  value={form.address}
-                  onChange={handleInputChange}
-                  className="w-full bg-card border border-border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-pure-green/50"
-                  placeholder="Street, Building, etc."
-                  required
-                />
-              </div>
-              <div>
-                <label className="text-sm font-bold text-muted-foreground uppercase tracking-widest mb-2 block">State</label>
-                <select
-                  name="state"
-                  value={form.state}
-                  onChange={handleInputChange}
-                  className="w-full bg-card border border-border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-pure-green/50 appearance-none"
-                  required
-                >
-                  <option value="">Select State</option>
-                  {NIGERIAN_STATES.map(state => (
-                    <option key={state} value={state}>{state}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="text-sm font-bold text-muted-foreground uppercase tracking-widest mb-2 block">City</label>
-                <input
-                  name="city"
-                  value={form.city}
-                  onChange={handleInputChange}
-                  className="w-full bg-card border border-border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-pure-green/50"
-                  placeholder="Ikeja, Garki, etc."
-                  required
-                />
-              </div>
-            </form>
+            </div>
           </section>
 
-          {/* Lagos Pickup Info */}
-          <AnimatePresence>
-            {isLagos && (
-              <motion.section
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                className="bg-emerald-500/5 border border-emerald-500/20 rounded-[2rem] p-8"
+          {/* STEP 2: How would you like to receive your order? */}
+          <section>
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 bg-blue-500/10 rounded-xl flex items-center justify-center">
+                <Truck className="text-blue-500 w-6 h-6" />
+              </div>
+              <h2 className="text-2xl font-bold">Fulfilment Method</h2>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Pick-up Card */}
+              <button
+                type="button"
+                onClick={() => setDeliveryMethod('pickup')}
+                className={`relative p-6 rounded-2xl border-2 text-left transition-all duration-200 group ${
+                  deliveryMethod === 'pickup'
+                    ? 'border-pure-green bg-pure-green/5 shadow-lg shadow-pure-green/10'
+                    : 'border-border bg-card hover:border-pure-green/40'
+                }`}
               >
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-10 h-10 bg-emerald-500 rounded-xl flex items-center justify-center">
-                    <MapPin className="text-white w-6 h-6" />
-                  </div>
-                  <h2 className="text-xl font-bold">Lagos Office Pickup</h2>
+                {deliveryMethod === 'pickup' && (
+                  <CheckCircle2 className="absolute top-4 right-4 w-5 h-5 text-pure-green" />
+                )}
+                <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 transition-colors ${
+                  deliveryMethod === 'pickup' ? 'bg-pure-green' : 'bg-muted'
+                }`}>
+                  <Store className={`w-6 h-6 ${deliveryMethod === 'pickup' ? 'text-white' : 'text-muted-foreground'}`} />
                 </div>
-                <p className="text-muted-foreground mb-6">
-                  Items can be collected directly from our main branch in Olodi Apapa. 
-                  <span className="block mt-2 font-bold text-foreground">For doorstep delivery within Lagos, please contact our customer support team after placing your order.</span>
-                </p>
-                
-                <div className="p-6 bg-emerald-500/10 rounded-2xl border border-emerald-500/20">
-                  <div className="text-xs font-bold text-emerald-600 uppercase tracking-widest mb-2">Office Address</div>
-                  <div className="font-bold text-lg leading-snug">{EMISCO_OFFICE_ADDRESS}</div>
-                  <p className="text-xs text-muted-foreground mt-4 italic flex items-center gap-2">
-                    <AlertCircle className="w-3 h-3" /> Pickup available Mon - Sat (8am - 5pm)
+                <h3 className="font-bold text-lg mb-1">Store Pick-up</h3>
+                <p className="text-sm text-muted-foreground">Collect from our Apapa office</p>
+              </button>
+
+              {/* Delivery Card */}
+              <button
+                type="button"
+                onClick={() => setDeliveryMethod('delivery')}
+                className={`relative p-6 rounded-2xl border-2 text-left transition-all duration-200 group ${
+                  deliveryMethod === 'delivery'
+                    ? 'border-blue-500 bg-blue-500/5 shadow-lg shadow-blue-500/10'
+                    : 'border-border bg-card hover:border-blue-500/40'
+                }`}
+              >
+                {deliveryMethod === 'delivery' && (
+                  <CheckCircle2 className="absolute top-4 right-4 w-5 h-5 text-blue-500" />
+                )}
+                <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 transition-colors ${
+                  deliveryMethod === 'delivery' ? 'bg-blue-500' : 'bg-muted'
+                }`}>
+                  <Truck className={`w-6 h-6 ${deliveryMethod === 'delivery' ? 'text-white' : 'text-muted-foreground'}`} />
+                </div>
+                <h3 className="font-bold text-lg mb-1">Delivery</h3>
+                <p className="text-sm text-muted-foreground">We ship to your location</p>
+              </button>
+            </div>
+
+            {/* ── Pick-up Info Panel ── */}
+            <AnimatePresence>
+              {deliveryMethod === 'pickup' && (
+                <motion.div
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  className="mt-5 bg-emerald-500/5 border border-emerald-500/20 rounded-[1.5rem] p-6 space-y-4"
+                >
+                  <div className="flex items-center gap-2 mb-1">
+                    <MapPin className="w-5 h-5 text-pure-green" />
+                    <span className="font-bold text-base">Shop Address</span>
+                  </div>
+                  <p className="text-sm text-foreground font-semibold leading-relaxed bg-emerald-500/10 px-4 py-3 rounded-xl border border-emerald-500/20">
+                    {EMISCO_OFFICE_ADDRESS}
                   </p>
-                </div>
-              </motion.section>
-            )}
-          </AnimatePresence>
 
-          {/* Delivery Suggestion */}
-          <AnimatePresence>
-            {showDeliverySuggestion && (
-              <motion.section
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                className="bg-pure-green/5 border border-pure-green/20 rounded-[2rem] p-8"
-              >
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-10 h-10 bg-pure-green rounded-xl flex items-center justify-center">
-                    <Truck className="text-white w-6 h-6" />
-                  </div>
-                  <h2 className="text-xl font-bold">Logistics Suggestion</h2>
-                </div>
-                <p className="text-muted-foreground mb-6">
-                  Since you are outside Lagos, we recommend shipping via our trusted transport partners for safer and faster delivery of heavy-duty parts.
-                </p>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  {transportCompanies.map((company) => (
-                    <button
-                      key={company}
-                      onClick={() => setDeliveryMethod(company)}
-                      className={`p-4 rounded-2xl border transition-all text-sm font-bold ${
-                        deliveryMethod === company
-                          ? 'bg-pure-green border-pure-green text-white shadow-lg shadow-pure-green/20'
-                          : 'bg-card border-border hover:border-pure-green/50'
-                      }`}
-                    >
-                      {company}
-                    </button>
-                  ))}
-                </div>
-
-                {deliveryMethod && (
-                  <motion.div 
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    className="mt-8 p-6 bg-pure-green/10 rounded-2xl border border-pure-green/20"
-                  >
-                    <div className="flex items-start gap-3">
-                      <div className="p-2 bg-pure-green rounded-lg shrink-0">
-                        <Truck className="w-4 h-4 text-white" />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="flex items-center gap-3 p-3 bg-card rounded-xl border border-border">
+                      <div className="w-8 h-8 bg-pure-green/10 rounded-lg flex items-center justify-center shrink-0">
+                        <Clock className="w-4 h-4 text-pure-green" />
                       </div>
                       <div>
-                        <div className="text-xs font-bold text-pure-green uppercase tracking-wider mb-1">Pickup Terminal</div>
-                        <div className="font-bold text-lg">{getTerminalAddress(deliveryMethod, form.state)}</div>
-                        <p className="text-xs text-muted-foreground mt-1 italic">
-                          Please note: Large parts are bulky. Ensure you have a suitable vehicle for pickup.
-                        </p>
+                        <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Working Hours</div>
+                        <div className="text-sm font-bold">Mon – Sat, 8am – 5pm</div>
                       </div>
                     </div>
-                  </motion.div>
-                )}
-              </motion.section>
-            )}
-          </AnimatePresence>
+                    <div className="flex items-center gap-3 p-3 bg-card rounded-xl border border-border">
+                      <div className="w-8 h-8 bg-pure-green/10 rounded-lg flex items-center justify-center shrink-0">
+                        <Phone className="w-4 h-4 text-pure-green" />
+                      </div>
+                      <div>
+                        <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Before You Come</div>
+                        <div className="text-sm font-bold">Bring your Order ID</div>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
+            {/* ── Delivery Address Form ── */}
+            <AnimatePresence>
+              {deliveryMethod === 'delivery' && (
+                <motion.div
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  className="mt-5 space-y-4"
+                >
+                  <div>
+                    <label className="text-sm font-bold text-muted-foreground uppercase tracking-widest mb-2 block">
+                      Delivery Address <span className="text-red-500">*</span>
+                    </label>
+                    <textarea
+                      name="address"
+                      value={form.address}
+                      onChange={handleInputChange}
+                      rows={3}
+                      className="w-full bg-card border border-border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500/50 resize-none"
+                      placeholder="Enter your full delivery address — Street, City, State…"
+                    />
+                    {user?.address && form.address === user.address && (
+                      <p className="mt-1.5 text-xs text-pure-green font-semibold flex items-center gap-1">
+                        <CheckCircle2 className="w-3 h-3" />
+                        Auto-filled from your saved profile
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Delivery Price Hint */}
+                  <div className="flex items-start gap-3 p-4 bg-amber-500/5 border border-amber-500/20 rounded-xl">
+                    <AlertCircle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-bold text-amber-700 dark:text-amber-400 mb-0.5">Delivery Price Not Included</p>
+                      <p className="text-sm text-muted-foreground leading-relaxed">
+                        You will pay for your items now. Our team will <strong>call you</strong> to discuss the delivery price before we ship your order.
+                      </p>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </section>
+
+          {/* STEP 3: Payment */}
           <section>
-            <div className="flex items-center gap-3 mb-8">
+            <div className="flex items-center gap-3 mb-6">
               <div className="w-10 h-10 bg-purple-500/10 rounded-xl flex items-center justify-center">
                 <CreditCard className="text-purple-500 w-6 h-6" />
               </div>
-              <h2 className="text-2xl font-bold">Payment Method</h2>
+              <h2 className="text-2xl font-bold">Payment</h2>
             </div>
-            
+
             <div className="p-8 border border-border rounded-3xl bg-muted/30">
               <div className="flex items-center justify-between mb-4">
                 <span className="font-bold">Secure Payment via Paystack</span>
                 <div className="flex gap-2">
-                   <div className="w-8 h-5 bg-card rounded" />
-                   <div className="w-8 h-5 bg-card rounded" />
+                  <div className="w-8 h-5 bg-card rounded border border-border" />
+                  <div className="w-8 h-5 bg-card rounded border border-border" />
                 </div>
               </div>
               <p className="text-sm text-muted-foreground italic mb-6">
-                You will be redirected to Paystack secure checkout to complete your transaction.
+                You will be redirected to Paystack&apos;s secure page to complete your transaction.
               </p>
-              <Button 
+              <Button
                 onClick={handlePlaceOrder}
-                disabled={loading}
-                className="w-full bg-pure-green hover:bg-pure-green-hover text-white py-8 rounded-2xl text-xl font-bold shadow-2xl shadow-pure-green/20"
+                disabled={loading || !deliveryMethod}
+                className="w-full bg-pure-green hover:bg-pure-green-hover text-white py-8 rounded-2xl text-xl font-bold shadow-2xl shadow-pure-green/20 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {loading ? 'Processing...' : `Pay ₦${finalTotal.toLocaleString()}`}
+                {loading ? 'Processing…' : `Pay ₦${subtotal.toLocaleString()}`}
               </Button>
+              {!deliveryMethod && (
+                <p className="text-center text-xs text-muted-foreground mt-3">
+                  Select Pick-up or Delivery above to enable payment.
+                </p>
+              )}
             </div>
           </section>
         </div>
 
-        {/* Order Summary Slider */}
+        {/* ─── RIGHT: ORDER SUMMARY ─────────────────────────────── */}
         <div className="lg:sticky lg:top-32 h-fit">
-           <div className="bg-card border border-border/50 rounded-[3rem] p-8 shadow-xl">
-             <h2 className="text-2xl font-bold mb-8">Order Summary</h2>
-             <div className="space-y-6 mb-8 max-h-80 overflow-y-auto pr-2 scrollbar-hide">
-               {items.map((item) => (
-                 <div key={item.id} className="flex gap-4">
-                   <div className="relative w-16 h-16 rounded-xl overflow-hidden shrink-0">
-                     <Image src={item.image} alt={item.name} fill className="object-cover" />
-                   </div>
-                   <div className="grow">
-                     <h4 className="text-sm font-bold line-clamp-1">{item.name}</h4>
-                     <p className="text-xs text-muted-foreground">{item.quantity} x ₦{item.price.toLocaleString()}</p>
-                   </div>
-                   <div className="font-bold text-sm">₦{(item.price * item.quantity).toLocaleString()}</div>
-                 </div>
-               ))}
-             </div>
-             
-             <div className="space-y-4 pt-8 border-t border-border">
-               <div className="flex justify-between text-muted-foreground">
-                 <span>Subtotal</span>
-                 <span className="text-foreground font-bold">₦{subtotal.toLocaleString()}</span>
-               </div>
-               {showDeliverySuggestion ? (
-                <div className="flex justify-between text-muted-foreground">
-                 <span>Delivery Fee</span>
-                 <span className="text-pure-green font-bold">₦{deliveryFee.toLocaleString()}</span>
-               </div>
-               ): (
-                <div className="flex justify-between text-muted-foreground">
-                 <span>Delivery</span>
-                 <span className="text-pure-green font-bold">No delivery</span>
-               </div>
-               )}
-               <div className="flex justify-between items-end pt-4">
-                 <span className="text-lg font-bold">Grand Total</span>
-                 <span className="text-3xl font-bold text-pure-green">₦{finalTotal.toLocaleString()}</span>
-               </div>
-             </div>
-             
-             <div className="mt-12 flex items-center gap-4 p-4 bg-muted/50 rounded-2xl text-xs text-muted-foreground border border-border">
-                <AlertCircle className="w-5 h-5 text-pure-green shrink-0" />
-                <span>By placing an order, you agree to Emisco&apos;s Terms of Service and Privacy Policy.</span>
-             </div>
-           </div>
+          <div className="bg-card border border-border/50 rounded-[3rem] p-8 shadow-xl">
+            <h2 className="text-2xl font-bold mb-8">Order Summary</h2>
+
+            <div className="space-y-6 mb-8 max-h-80 overflow-y-auto pr-2 scrollbar-hide">
+              {items.map((item) => (
+                <div key={item.id} className="flex gap-4">
+                  <div className="relative w-16 h-16 rounded-xl overflow-hidden shrink-0">
+                    <Image src={item.image} alt={item.name} fill className="object-cover" />
+                  </div>
+                  <div className="grow">
+                    <h4 className="text-sm font-bold line-clamp-1">{item.name}</h4>
+                    <p className="text-xs text-muted-foreground">{item.quantity} × ₦{item.price.toLocaleString()}</p>
+                  </div>
+                  <div className="font-bold text-sm">₦{(item.price * item.quantity).toLocaleString()}</div>
+                </div>
+              ))}
+            </div>
+
+            <div className="space-y-4 pt-8 border-t border-border">
+              <div className="flex justify-between text-muted-foreground">
+                <span>Subtotal</span>
+                <span className="text-foreground font-bold">₦{subtotal.toLocaleString()}</span>
+              </div>
+
+              <div className="flex justify-between text-muted-foreground">
+                <span>Delivery Fee</span>
+                <span className="font-bold">
+                  {deliveryMethod === 'pickup'
+                    ? <span className="text-pure-green">Free (Pick-up)</span>
+                    : deliveryMethod === 'delivery'
+                    ? <span className="text-amber-500">To be discussed</span>
+                    : <span className="text-muted-foreground">—</span>
+                  }
+                </span>
+              </div>
+
+              <div className="flex justify-between items-end pt-4">
+                <span className="text-lg font-bold">Total (items)</span>
+                <span className="text-3xl font-bold text-pure-green">₦{subtotal.toLocaleString()}</span>
+              </div>
+            </div>
+
+            <div className="mt-10 flex items-start gap-4 p-4 bg-muted/50 rounded-2xl text-xs text-muted-foreground border border-border">
+              <AlertCircle className="w-5 h-5 text-pure-green shrink-0 mt-0.5" />
+              <span>By placing an order, you agree to Emisco&apos;s Terms of Service and Privacy Policy.</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
