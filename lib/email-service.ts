@@ -7,8 +7,8 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 
 const SITE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://emiscoinvestment.com';
 const EMISCO_LOGO = `${SITE_URL}/emisco_logo.png`;
-const FROM_EMAIL = "Emisco Investment Ltd <noreply@emiscoinvestment.com>"; // Update to your verified domain
-const ADMIN_EMAIL = process.env.SMTP_USER || "support@emiscoinvestment.com";
+const FROM_EMAIL = "Emisco Investment Ltd <noreply@emiscoinvestment.com>";
+const ADMIN_EMAIL = process.env.SMTP_USER || "michaely@emiscoinvestment.com";
 
 // ─── DESIGN TOKENS ───────────────────────────────────────────────────────────
 const COLORS = {
@@ -26,7 +26,7 @@ const COLORS = {
   white: "#ffffff",
 };
 
-// ─── SHARED LAYOUT ────────────────────────────────────────────────────────────
+// ─── SHARED RESPONSIVE LAYOUT ────────────────────────────────────────────────
 function buildEmailWrapper(content: string, previewText: string = '') {
   return `<!DOCTYPE html>
 <html lang="en">
@@ -36,43 +36,53 @@ function buildEmailWrapper(content: string, previewText: string = '') {
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <title>Emisco Investment Ltd</title>
   <!--[if mso]><noscript><xml><o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml></noscript><![endif]-->
+  <style>
+    @media only screen and (max-width: 600px) {
+      .email-outer-td { padding: 12px 6px !important; }
+      .email-card { border-radius: 16px !important; }
+      .responsive-cell { padding-left: 18px !important; padding-right: 18px !important; }
+      .responsive-header { padding: 20px 16px !important; }
+      .responsive-footer { padding: 20px 16px !important; }
+      .mobile-text-lg { font-size: 20px !important; }
+    }
+  </style>
 </head>
 <body style="margin:0;padding:0;background-color:${COLORS.bg};font-family:'Segoe UI',Roboto,Arial,sans-serif;-webkit-font-smoothing:antialiased;">
-  <!-- Preview text hack -->
+  <!-- Preview text -->
   <div style="display:none;max-height:0;overflow:hidden;opacity:0;">${previewText}</div>
 
   <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="background:${COLORS.bg};min-height:100vh;">
     <tr>
-      <td align="center" style="padding:40px 16px;">
+      <td align="center" class="email-outer-td" style="padding:24px 12px;">
         
-        <!-- EMAIL CARD -->
-        <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="max-width:100%; background:${COLORS.white};border-radius:24px;overflow:hidden;box-shadow:0 4px 40px rgba(0,0,0,0.08);border:1px solid ${COLORS.border};">
+        <!-- EMAIL CARD CONTAINER (Max Width 600px for perfectly balanced width) -->
+        <table width="100%" cellpadding="0" cellspacing="0" role="presentation" class="email-card" style="width:100%;max-width:600px;margin:0 auto;background:${COLORS.white};border-radius:20px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.06);border:1px solid ${COLORS.border};">
           
           <!-- HEADER -->
           <tr>
-            <td style="background:linear-gradient(135deg,${COLORS.darkGreen} 0%,#1a5c3a 100%);padding:26px 30px;text-align:center;">
-              <div style="display:inline-block;background:rgba(255,255,255,0.12);padding:10px;border-radius:16px;margin-bottom:16px;">
-                <img src="${EMISCO_LOGO}" alt="Emisco" width="48" height="48" style="display:block;border-radius:10px;" />
+            <td class="responsive-header" style="background:linear-gradient(135deg,${COLORS.darkGreen} 0%,#1a5c3a 100%);padding:24px 20px;text-align:center;">
+              <div style="display:inline-block;background:rgba(255,255,255,0.14);padding:8px 14px;border-radius:14px;margin-bottom:12px;">
+                <img src="${EMISCO_LOGO}" alt="Emisco Investment Ltd" style="max-height:44px;width:auto;max-width:180px;display:block;margin:0 auto;border-radius:6px;" />
               </div>
-              <h1 style="color:${COLORS.white};margin:0;font-size:22px;font-weight:800;letter-spacing:-0.3px;">EMISCO INVESTMENT LTD</h1>
-              <p style="color:rgba(255,255,255,0.6);margin:6px 0 0;font-size:13px;letter-spacing:0.5px;">Premium Truck Spare Parts</p>
+              <h1 style="color:${COLORS.white};margin:0;font-size:20px;font-weight:800;letter-spacing:-0.3px;">EMISCO INVESTMENT LTD</h1>
+              <p style="color:rgba(255,255,255,0.7);margin:4px 0 0;font-size:12px;letter-spacing:0.5px;">Heavy Duty Truck Parts & Machinery Specialist</p>
             </td>
           </tr>
 
-          <!-- BODY -->
+          <!-- BODY CONTENT -->
           ${content}
 
           <!-- FOOTER -->
           <tr>
-            <td style="background:${COLORS.bg};padding:28px 40px;text-align:center;border-top:1px solid ${COLORS.border};">
-              <p style="margin:0 0 8px;font-size:12px;color:${COLORS.muted};">
+            <td class="responsive-footer" style="background:${COLORS.bg};padding:24px 24px;text-align:center;border-top:1px solid ${COLORS.border};">
+              <p style="margin:0 0 8px;font-size:12px;color:${COLORS.muted};line-height:1.5;">
                 <strong style="color:${COLORS.text};">Emisco Investment Ltd</strong><br/>
                 ${EMISCO_OFFICE_ADDRESS}
               </p>
-              <p style="margin:0;font-size:11px;color:#a0aec0;">
+              <p style="margin:0;font-size:11px;color:#a0aec0;line-height:1.5;">
                 Mon – Sat &nbsp;|&nbsp; 8:00 AM – 5:00 PM
                 &nbsp;&nbsp;·&nbsp;&nbsp;
-                This email was sent from our automated system. Please do not reply directly.
+                Automated notification. Please do not reply directly.
               </p>
             </td>
           </tr>
@@ -89,32 +99,32 @@ function buildEmailWrapper(content: string, previewText: string = '') {
 
 // ─── BADGE COMPONENT ─────────────────────────────────────────────────────────
 function statusBadge(label: string, color: string, bg: string) {
-  return `<span style="display:inline-block;padding:6px 16px;border-radius:100px;background:${bg};color:${color};font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;">${label}</span>`;
+  return `<span style="display:inline-block;padding:5px 14px;border-radius:100px;background:${bg};color:${color};font-size:11px;font-weight:800;letter-spacing:0.5px;text-transform:uppercase;">${label}</span>`;
 }
 
 // ─── SECTION DIVIDER ──────────────────────────────────────────────────────────
-const divider = `<tr><td style="padding:0 40px;"><div style="height:1px;background:${COLORS.border};"></div></td></tr>`;
+const divider = `<tr><td class="responsive-cell" style="padding:0 24px;"><div style="height:1px;background:${COLORS.border};"></div></td></tr>`;
 
 // ─── ORDER ITEMS TABLE ────────────────────────────────────────────────────────
 function buildItemsRows(orderItems: OrderItem[]): string {
   return orderItems.map(item => `
     <tr>
-      <td style="padding:14px 0;border-bottom:1px solid ${COLORS.border};">
+      <td style="padding:12px 0;border-bottom:1px solid ${COLORS.border};">
         <table cellpadding="0" cellspacing="0" role="presentation" width="100%">
           <tr>
-            <td style="width:56px;vertical-align:middle;">
+            <td style="width:50px;vertical-align:middle;">
               ${item.productImage
-                ? `<img src="${item.productImage}" alt="${item.productName}" width="52" height="52" style="border-radius:10px;object-fit:cover;display:block;" />`
-                : `<div style="width:52px;height:52px;border-radius:10px;background:${COLORS.lightGreen};"></div>`
+                ? `<img src="${item.productImage}" alt="${item.productName}" width="46" height="46" style="border-radius:8px;object-fit:cover;display:block;" />`
+                : `<div style="width:46px;height:46px;border-radius:8px;background:${COLORS.lightGreen};"></div>`
               }
             </td>
-            <td style="padding-left:14px;vertical-align:middle;">
-              <p style="margin:0 0 3px;font-size:14px;font-weight:700;color:${COLORS.text};">${item.productName || 'Part'}</p>
-              <p style="margin:0;font-size:12px;color:${COLORS.muted};">Qty: ${item.quantity}</p>
+            <td style="padding-left:12px;vertical-align:middle;">
+              <p style="margin:0 0 2px;font-size:13px;font-weight:700;color:${COLORS.text};">${item.productName || 'Part'}</p>
+              <p style="margin:0;font-size:11px;color:${COLORS.muted};">Qty: ${item.quantity}</p>
             </td>
             <td style="vertical-align:middle;text-align:right;">
-              <p style="margin:0;font-size:14px;font-weight:800;color:${COLORS.text};">₦${(item.price * item.quantity).toLocaleString()}</p>
-              <p style="margin:0;font-size:11px;color:${COLORS.muted};">₦${item.price.toLocaleString()} each</p>
+              <p style="margin:0;font-size:13px;font-weight:800;color:${COLORS.text};">₦${(item.price * item.quantity).toLocaleString()}</p>
+              <p style="margin:0;font-size:10px;color:${COLORS.muted};">₦${item.price.toLocaleString()} each</p>
             </td>
           </tr>
         </table>
@@ -127,10 +137,10 @@ function buildItemsRows(orderItems: OrderItem[]): string {
 function infoRow(label: string, value: string) {
   return `
     <tr>
-      <td style="padding:10px 0;border-bottom:1px solid ${COLORS.border};">
+      <td style="padding:8px 0;border-bottom:1px solid ${COLORS.border};">
         <table cellpadding="0" cellspacing="0" role="presentation" width="100%">
           <tr>
-            <td style="font-size:12px;color:${COLORS.muted};font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">${label}</td>
+            <td style="font-size:11px;color:${COLORS.muted};font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">${label}</td>
             <td style="font-size:13px;color:${COLORS.text};font-weight:700;text-align:right;">${value}</td>
           </tr>
         </table>
@@ -146,7 +156,6 @@ function infoRow(label: string, value: string) {
 
 /**
  * Sends a delayed order notification if the payment is still pending.
- * Smart sync: re-queries DB to capture real payment state after 60 seconds.
  */
 export async function sendOrderNotificationWithSync(orderId: string, delayMs: number = 60000) {
   console.log(`Email Sync: Waiting ${delayMs}ms before checking order #${orderId}...`);
@@ -158,10 +167,7 @@ export async function sendOrderNotificationWithSync(orderId: string, delayMs: nu
         include: { user: true, orderItems: true },
       });
 
-      if (!order) {
-        console.log(`Email Sync: Order #${orderId} not found. Skipping.`);
-        return;
-      }
+      if (!order) return;
 
       const type = order.paymentStatus === 'PAID' ? 'PAID' : 'PENDING';
       await sendOrderNotification(orderId, type, order);
@@ -199,53 +205,52 @@ export async function sendOrderNotification(orderId: string, type: 'PENDING' | '
     const isPickup = order.deliveryMethod === 'pickup';
     const deliverySection = isPickup ? `
       <tr>
-        <td style="padding:24px 40px 0;">
-          <div style="background:${COLORS.lightGreen};border-radius:16px;padding:20px;border:1px solid ${COLORS.pureGreen}30;">
-            <p style="margin:0 0 6px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:${COLORS.pureGreen};">🏢 Store Pick-up Location</p>
-            <p style="margin:0;font-size:14px;color:${COLORS.text};font-weight:700;">${EMISCO_OFFICE_ADDRESS}</p>
-            <p style="margin:6px 0 0;font-size:12px;color:${COLORS.muted};"><strong>Working Hours:</strong> Mon – Sat, 8:00 AM – 5:00 PM</p>
-            <p style="margin:4px 0 0;font-size:12px;color:${COLORS.pureGreen};font-weight:700;">💡 Please present your Order Reference #${shortId} upon collection.</p>
+        <td class="responsive-cell" style="padding:20px 24px 0;">
+          <div style="background:${COLORS.lightGreen};border-radius:14px;padding:16px;border:1px solid ${COLORS.pureGreen}30;">
+            <p style="margin:0 0 4px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;color:${COLORS.pureGreen};">🏢 Store Pick-up Location</p>
+            <p style="margin:0;font-size:13px;color:${COLORS.text};font-weight:700;line-height:1.4;">${EMISCO_OFFICE_ADDRESS}</p>
+            <p style="margin:6px 0 0;font-size:11px;color:${COLORS.muted};"><strong>Working Hours:</strong> Mon – Sat, 8:00 AM – 5:00 PM</p>
+            <p style="margin:4px 0 0;font-size:11px;color:${COLORS.pureGreen};font-weight:700;"> Present Order Reference #${shortId} upon collection.</p>
           </div>
         </td>
       </tr>
     ` : order.shippingAddress ? `
       <tr>
-        <td style="padding:24px 40px 0;">
-          <div style="background:${COLORS.bg};border-radius:16px;padding:20px;border:1px solid ${COLORS.border};">
-            <p style="margin:0 0 6px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:${COLORS.muted};">🚚 Home / Doorstep Delivery</p>
-            <p style="margin:0;font-size:13px;color:${COLORS.text};font-weight:600;">${order.shippingAddress}</p>
-            ${order.nearestBusStop ? `<p style="margin:4px 0 0;font-size:12px;color:${COLORS.muted};">🚏 <strong>Nearest Bus Stop:</strong> ${order.nearestBusStop}</p>` : ''}
-            <p style="margin:10px 0 0;font-size:12px;color:${COLORS.amber};font-weight:700;background:#fffbeb;padding:8px 12px;border-radius:8px;border:1px solid ${COLORS.amber}30;">📞 Our logistics team will call you shortly to discuss delivery charges.</p>
+        <td class="responsive-cell" style="padding:20px 24px 0;">
+          <div style="background:${COLORS.bg};border-radius:14px;padding:16px;border:1px solid ${COLORS.border};">
+            <p style="margin:0 0 4px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;color:${COLORS.muted};">🚚 Home / Doorstep Delivery</p>
+            <p style="margin:0;font-size:13px;color:${COLORS.text};font-weight:600;line-height:1.4;">${order.shippingAddress}</p>
+            ${order.nearestBusStop ? `<p style="margin:4px 0 0;font-size:11px;color:${COLORS.muted};">🚏 <strong>Nearest Bus Stop:</strong> ${order.nearestBusStop}</p>` : ''}
+            <p style="margin:8px 0 0;font-size:11px;color:${COLORS.amber};font-weight:700;background:#fffbeb;padding:6px 10px;border-radius:6px;border:1px solid ${COLORS.amber}30;">📞 Our logistics team will call you shortly regarding delivery charges.</p>
           </div>
         </td>
       </tr>
     ` : '';
-
 
     const ctaUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/orders/${order.id}`;
 
     const bodyContent = `
       <!-- STATUS BANNER -->
       <tr>
-        <td style="padding:32px 40px 0;text-align:center;">
+        <td class="responsive-cell" style="padding:24px 24px 0;text-align:center;">
           ${statusBadge(statusLabel, statusColor, statusBg)}
-          <h2 style="margin:16px 0 8px;font-size:24px;font-weight:800;color:${COLORS.text};">
-            ${isPaid ? 'Payment Received!' : 'Order on Hold'}
+          <h2 class="mobile-text-lg" style="margin:14px 0 6px;font-size:22px;font-weight:800;color:${COLORS.text};">
+            ${isPaid ? 'Payment Received!' : 'Order Received'}
           </h2>
-          <p style="margin:0;font-size:14px;color:${COLORS.muted};line-height:1.6;">
+          <p style="margin:0;font-size:13px;color:${COLORS.muted};line-height:1.5;">
             Hi <strong>${order.user.name}</strong>, ${isPaid
-              ? 'your payment was successful and your order has been confirmed. We\'ll update you when it\'s ready.'
-              : 'we received your order. Please complete your payment to proceed with fulfilment.'}
+              ? 'your payment was successful and your order has been confirmed.'
+              : 'we received your order. Complete payment to proceed with fulfilment.'}
           </p>
         </td>
       </tr>
 
       <!-- ORDER ID BOX -->
       <tr>
-        <td style="padding:24px 40px 0;">
-          <div style="background:${COLORS.darkGreen};border-radius:16px;padding:20px 24px;text-align:center;">
-            <p style="margin:0 0 4px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:rgba(255,255,255,0.5);">Order Reference</p>
-            <p style="margin:0;font-size:20px;font-weight:900;color:${COLORS.white};letter-spacing:2px;font-family:monospace;">#${shortId}</p>
+        <td class="responsive-cell" style="padding:16px 24px 0;">
+          <div style="background:${COLORS.darkGreen};border-radius:14px;padding:16px;text-align:center;">
+            <p style="margin:0 0 2px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,0.6);">Order Reference</p>
+            <p style="margin:0;font-size:18px;font-weight:900;color:${COLORS.white};letter-spacing:2px;font-family:monospace;">#${shortId}</p>
           </div>
         </td>
       </tr>
@@ -254,8 +259,8 @@ export async function sendOrderNotification(orderId: string, type: 'PENDING' | '
 
       <!-- ITEMS -->
       <tr>
-        <td style="padding:28px 40px 0;">
-          <p style="margin:0 0 16px;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:${COLORS.muted};">Items Ordered</p>
+        <td class="responsive-cell" style="padding:20px 24px 0;">
+          <p style="margin:0 0 12px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;color:${COLORS.muted};">Items Ordered</p>
           <table cellpadding="0" cellspacing="0" role="presentation" width="100%">
             ${itemsHtml}
           </table>
@@ -264,11 +269,11 @@ export async function sendOrderNotification(orderId: string, type: 'PENDING' | '
 
       <!-- TOTAL -->
       <tr>
-        <td style="padding:20px 40px 32px;">
+        <td class="responsive-cell" style="padding:16px 24px 24px;">
           <table cellpadding="0" cellspacing="0" role="presentation" width="100%">
             <tr>
-              <td style="font-size:15px;font-weight:700;color:${COLORS.text};">Total Amount</td>
-              <td style="font-size:24px;font-weight:900;color:${COLORS.pureGreen};text-align:right;">₦${order.totalAmount.toLocaleString()}</td>
+              <td style="font-size:14px;font-weight:700;color:${COLORS.text};">Total Amount</td>
+              <td style="font-size:20px;font-weight:900;color:${COLORS.pureGreen};text-align:right;">₦${order.totalAmount.toLocaleString()}</td>
             </tr>
           </table>
         </td>
@@ -278,8 +283,8 @@ export async function sendOrderNotification(orderId: string, type: 'PENDING' | '
 
       <!-- CTA BUTTON -->
       <tr>
-        <td style="padding:32px 40px;text-align:center;">
-          <a href="${ctaUrl}" style="display:inline-block;background:${COLORS.pureGreen};color:${COLORS.white};text-decoration:none;font-size:14px;font-weight:800;padding:16px 36px;border-radius:100px;letter-spacing:0.5px;">
+        <td class="responsive-cell" style="padding:24px 24px;text-align:center;">
+          <a href="${ctaUrl}" style="display:inline-block;background:${COLORS.pureGreen};color:${COLORS.white};text-decoration:none;font-size:13px;font-weight:800;padding:14px 30px;border-radius:100px;letter-spacing:0.5px;">
             View Order Details →
           </a>
         </td>
@@ -290,7 +295,7 @@ export async function sendOrderNotification(orderId: string, type: 'PENDING' | '
       from: FROM_EMAIL,
       to: [order.user.email],
       subject,
-      html: buildEmailWrapper(bodyContent, isPaid ? `Your payment for order #${shortId} was successful.` : `We received your order #${shortId}. Complete your payment to proceed.`),
+      html: buildEmailWrapper(bodyContent, isPaid ? `Your payment for order #${shortId} was successful.` : `We received your order #${shortId}.`),
     });
 
     console.log(`✅ Resend: Order notification (${type}) sent to ${order.user.email}`);
@@ -316,48 +321,20 @@ export async function sendDeliveryStatusUpdateEmail(orderId: string, status: str
     const statusConfig: Record<string, { color: string; bg: string; icon: string; title: string; message: string }> = {
       PROCESSING: { color: COLORS.blue, bg: '#eff6ff', icon: '⚙️', title: 'Order is Being Processed', message: "We're preparing your order for dispatch." },
       SHIPPED:    { color: COLORS.purple, bg: '#f5f3ff', icon: '🚚', title: 'Your Order Has Shipped!', message: "Your parts are on their way." },
-      OUT_FOR_DELIVERY: { color: COLORS.amber, bg: '#fffbeb', icon: '📦', title: 'Out for Delivery!', message: "Your order is almost there — it's out for delivery." },
-      DELIVERED:  { color: COLORS.pureGreen, bg: COLORS.lightGreen, icon: '✅', title: 'Order Delivered!', message: "Your order has been successfully delivered. Thank you for choosing Emisco!" },
+      OUT_FOR_DELIVERY: { color: COLORS.amber, bg: '#fffbeb', icon: '📦', title: 'Out for Delivery!', message: "Your order is out for delivery." },
+      DELIVERED:  { color: COLORS.pureGreen, bg: COLORS.lightGreen, icon: '✅', title: 'Order Delivered!', message: "Your order has been successfully delivered." },
     };
 
     const cfg = statusConfig[status] || { color: COLORS.darkGreen, bg: COLORS.bg, icon: '📋', title: `Status: ${status.replace(/_/g, ' ')}`, message: 'Your order status has been updated.' };
 
-    const isLagos = order.shippingState?.toLowerCase() === 'lagos';
-    const showLogisticsBox = (status === 'DELIVERED' || status === 'SHIPPED') && !isLagos && order.terminalAddress;
-    const showLagosBox = (status === 'DELIVERED' || status === 'SHIPPED') && isLagos;
-
-    const logisticsBox = showLogisticsBox ? `
-      <tr>
-        <td style="padding:0 40px 28px;">
-          <div style="background:#f0fff4;border:2px dashed ${COLORS.pureGreen};border-radius:20px;padding:24px;">
-            <p style="margin:0 0 8px;font-size:13px;font-weight:800;color:#2f855a;">📍 Pickup Terminal</p>
-            <p style="margin:0 0 8px;font-size:15px;font-weight:800;color:${COLORS.text};">${order.terminalAddress}</p>
-            <p style="margin:0;font-size:12px;color:${COLORS.muted};">Please bring a valid ID and your Order ID for collection.</p>
-          </div>
-        </td>
-      </tr>
-    ` : '';
-
-    const lagosBox = showLagosBox ? `
-      <tr>
-        <td style="padding:0 40px 28px;">
-          <div style="background:#f0fff4;border:2px dashed ${COLORS.pureGreen};border-radius:20px;padding:24px;">
-            <p style="margin:0 0 8px;font-size:13px;font-weight:800;color:#2f855a;">🏢 Lagos Office Pickup</p>
-            <p style="margin:0 0 8px;font-size:14px;font-weight:800;color:${COLORS.text};">${EMISCO_OFFICE_ADDRESS}</p>
-            <p style="margin:0;font-size:12px;color:${COLORS.muted};">Available Mon – Sat, 8am – 5pm</p>
-          </div>
-        </td>
-      </tr>
-    ` : '';
-
     const bodyContent = `
       <!-- ICON + STATUS -->
       <tr>
-        <td style="padding:36px 40px 24px;text-align:center;">
-          <div style="font-size:56px;margin-bottom:16px;line-height:1;">${cfg.icon}</div>
+        <td class="responsive-cell" style="padding:28px 24px 20px;text-align:center;">
+          <div style="font-size:48px;margin-bottom:12px;line-height:1;">${cfg.icon}</div>
           ${statusBadge(status.replace(/_/g, ' '), cfg.color, cfg.bg)}
-          <h2 style="margin:16px 0 8px;font-size:24px;font-weight:800;color:${COLORS.text};">${cfg.title}</h2>
-          <p style="margin:0;font-size:14px;color:${COLORS.muted};line-height:1.6;">
+          <h2 class="mobile-text-lg" style="margin:14px 0 6px;font-size:22px;font-weight:800;color:${COLORS.text};">${cfg.title}</h2>
+          <p style="margin:0;font-size:13px;color:${COLORS.muted};line-height:1.5;">
             Hi <strong>${order.user.name}</strong>, ${cfg.message}
           </p>
         </td>
@@ -365,23 +342,20 @@ export async function sendDeliveryStatusUpdateEmail(orderId: string, status: str
 
       <!-- ORDER REFERENCE -->
       <tr>
-        <td style="padding:0 40px 28px;">
-          <div style="background:${COLORS.bg};border-radius:14px;padding:16px 20px;border:1px solid ${COLORS.border};text-align:center;">
-            <p style="margin:0 0 4px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:${COLORS.muted};">Order Reference</p>
-            <p style="margin:0;font-size:18px;font-weight:900;color:${COLORS.text};font-family:monospace;">#${shortId}</p>
+        <td class="responsive-cell" style="padding:0 24px 20px;">
+          <div style="background:${COLORS.bg};border-radius:12px;padding:14px;border:1px solid ${COLORS.border};text-align:center;">
+            <p style="margin:0 0 2px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:${COLORS.muted};">Order Reference</p>
+            <p style="margin:0;font-size:16px;font-weight:900;color:${COLORS.text};font-family:monospace;">#${shortId}</p>
           </div>
         </td>
       </tr>
-
-      ${logisticsBox}
-      ${lagosBox}
 
       ${divider}
 
       <!-- CTA -->
       <tr>
-        <td style="padding:32px 40px;text-align:center;">
-          <a href="${process.env.NEXT_PUBLIC_BASE_URL}/orders/${order.id}" style="display:inline-block;background:${COLORS.darkGreen};color:${COLORS.white};text-decoration:none;font-size:14px;font-weight:800;padding:16px 36px;border-radius:100px;">
+        <td class="responsive-cell" style="padding:24px 24px;text-align:center;">
+          <a href="${process.env.NEXT_PUBLIC_BASE_URL}/orders/${order.id}" style="display:inline-block;background:${COLORS.darkGreen};color:${COLORS.white};text-decoration:none;font-size:13px;font-weight:800;padding:14px 30px;border-radius:100px;">
             Track My Order →
           </a>
         </td>
@@ -395,9 +369,9 @@ export async function sendDeliveryStatusUpdateEmail(orderId: string, status: str
       html: buildEmailWrapper(bodyContent, `${cfg.message} Order #${shortId}`),
     });
 
-    console.log(`✅ Resend: Status update (${status}) sent to ${order.user.email}`);
+    console.log(` Resend: Status update (${status}) sent to ${order.user.email}`);
   } catch (error) {
-    console.error('❌ Resend Email Error (sendDeliveryStatusUpdateEmail):', error);
+    console.error(' Resend Email Error (sendDeliveryStatusUpdateEmail):', error);
   }
 }
 
@@ -410,18 +384,18 @@ export async function sendContactFeedbackEmail(data: { name: string; email: stri
     const bodyContent = `
       <!-- HEADER TEXT -->
       <tr>
-        <td style="padding:32px 40px 24px;text-align:center;">
-          <div style="font-size:48px;margin-bottom:12px;">💬</div>
-          <h2 style="margin:0 0 8px;font-size:22px;font-weight:800;color:${COLORS.text};">New Customer Message</h2>
-          <p style="margin:0;font-size:14px;color:${COLORS.muted};">Someone reached out via the Emisco website contact form.</p>
+        <td class="responsive-cell" style="padding:24px 24px 20px;text-align:center;">
+          <div style="font-size:42px;margin-bottom:10px;">💬</div>
+          <h2 style="margin:0 0 6px;font-size:20px;font-weight:800;color:${COLORS.text};">New Customer Message</h2>
+          <p style="margin:0;font-size:13px;color:${COLORS.muted};">Someone reached out via the Emisco contact form.</p>
         </td>
       </tr>
 
       <!-- CUSTOMER DETAILS CARD -->
       <tr>
-        <td style="padding:0 40px 24px;">
-          <div style="background:${COLORS.bg};border-radius:16px;padding:24px;border:1px solid ${COLORS.border};">
-            <p style="margin:0 0 16px;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:${COLORS.muted};">Customer Details</p>
+        <td class="responsive-cell" style="padding:0 24px 20px;">
+          <div style="background:${COLORS.bg};border-radius:14px;padding:18px;border:1px solid ${COLORS.border};">
+            <p style="margin:0 0 12px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;color:${COLORS.muted};">Customer Details</p>
             <table cellpadding="0" cellspacing="0" role="presentation" width="100%">
               ${infoRow('Name', data.name)}
               ${infoRow('Email', data.email)}
@@ -433,10 +407,10 @@ export async function sendContactFeedbackEmail(data: { name: string; email: stri
 
       <!-- MESSAGE CONTENT -->
       <tr>
-        <td style="padding:0 40px 32px;">
-          <p style="margin:0 0 12px;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:${COLORS.muted};">Message</p>
-          <div style="background:#fffbf0;border-left:4px solid ${COLORS.amber};border-radius:0 12px 12px 0;padding:20px 24px;">
-            <p style="margin:0;font-size:14px;color:${COLORS.text};line-height:1.7;font-style:italic;">"${data.message}"</p>
+        <td class="responsive-cell" style="padding:0 24px 24px;">
+          <p style="margin:0 0 8px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;color:${COLORS.muted};">Message</p>
+          <div style="background:#fffbf0;border-left:4px solid ${COLORS.amber};border-radius:0 10px 10px 0;padding:16px 18px;">
+            <p style="margin:0;font-size:13px;color:${COLORS.text};line-height:1.6;font-style:italic;">"${data.message}"</p>
           </div>
         </td>
       </tr>
@@ -445,11 +419,10 @@ export async function sendContactFeedbackEmail(data: { name: string; email: stri
 
       <!-- REPLY CTA -->
       <tr>
-        <td style="padding:28px 40px;text-align:center;">
-          <a href="mailto:${data.email}" style="display:inline-block;background:${COLORS.pureGreen};color:${COLORS.white};text-decoration:none;font-size:14px;font-weight:800;padding:14px 32px;border-radius:100px;">
+        <td class="responsive-cell" style="padding:20px 24px;text-align:center;">
+          <a href="mailto:${data.email}" style="display:inline-block;background:${COLORS.pureGreen};color:${COLORS.white};text-decoration:none;font-size:13px;font-weight:800;padding:12px 28px;border-radius:100px;">
             Reply to ${data.name} →
           </a>
-          <p style="margin:12px 0 0;font-size:11px;color:${COLORS.muted};">Reply directly to ${data.email}</p>
         </td>
       </tr>
     `;
@@ -458,13 +431,13 @@ export async function sendContactFeedbackEmail(data: { name: string; email: stri
       from: FROM_EMAIL,
       to: [ADMIN_EMAIL],
       replyTo: data.email,
-      subject: `💬 New Customer Message from ${data.name}`,
+      subject: `New Customer Message from ${data.name}`,
       html: buildEmailWrapper(bodyContent, `${data.name} sent a message: "${data.message.slice(0, 80)}..."`),
     });
 
-    console.log(`✅ Resend: Contact feedback email sent from ${data.email}`);
+    console.log(`Resend: Contact feedback email sent from ${data.email}`);
   } catch (error) {
-    console.error('❌ Resend Email Error (sendContactFeedbackEmail):', error);
+    console.error('Resend Email Error (sendContactFeedbackEmail):', error);
     throw error;
   }
 }
@@ -475,16 +448,16 @@ export async function sendContactFeedbackEmail(data: { name: string; email: stri
  */
 export async function sendWelcomeEmail(email: string, name: string) {
   try {
-    const shopUrl = `${process.env.NEXT_PUBLIC_BASE_URL || 'https://emisco.com'}/products`;
+    const shopUrl = `${process.env.NEXT_PUBLIC_BASE_URL || 'https://emiscoinvestment.com'}/products`;
 
     const bodyContent = `
       <!-- WELCOME HERO BANNER -->
       <tr>
-        <td style="padding:40px 40px 24px;text-align:center;">
-          <div style="font-size:56px;margin-bottom:12px;line-height:1;">🎉</div>
+        <td class="responsive-cell" style="padding:28px 24px 20px;text-align:center;">
+        
           ${statusBadge('WELCOME TO EMISCO', COLORS.pureGreen, COLORS.lightGreen)}
-          <h2 style="margin:20px 0 10px;font-size:26px;font-weight:800;color:${COLORS.text};">Welcome aboard, ${name}!</h2>
-          <p style="margin:0;font-size:14px;color:${COLORS.muted};line-height:1.7;max-width:440px;margin-left:auto;margin-right:auto;">
+          <h2 class="mobile-text-lg" style="margin:16px 0 8px;font-size:22px;font-weight:800;color:${COLORS.text};">Welcome aboard, ${name}!</h2>
+          <p style="margin:0;font-size:13px;color:${COLORS.muted};line-height:1.6;max-width:440px;margin-left:auto;margin-right:auto;">
             Thank you for creating an account with <strong>Emisco Investment Limited</strong>. Your one-stop shop for genuine motor parts, truck accessories, and heavy machinery components.
           </p>
         </td>
@@ -492,26 +465,26 @@ export async function sendWelcomeEmail(email: string, name: string) {
 
       <!-- FEATURES CARD -->
       <tr>
-        <td style="padding:0 40px 28px;">
-          <div style="background:${COLORS.bg};border-radius:20px;padding:24px;border:1px solid ${COLORS.border};">
-            <p style="margin:0 0 16px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;color:${COLORS.muted};">Why Choose Emisco?</p>
+        <td class="responsive-cell" style="padding:0 24px 24px;">
+          <div style="background:${COLORS.bg};border-radius:16px;padding:18px;border:1px solid ${COLORS.border};">
+            <p style="margin:0 0 12px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:${COLORS.muted};">Why Choose Emisco?</p>
             <table cellpadding="0" cellspacing="0" role="presentation" width="100%">
               <tr>
-                <td style="padding:10px 0;border-bottom:1px solid ${COLORS.border};">
-                  <span style="font-size:18px;margin-right:10px;">💯</span>
-                  <strong style="font-size:13px;color:${COLORS.text};">100% Genuine OEM Parts</strong>
+                <td style="padding:8px 0;border-bottom:1px solid ${COLORS.border};">
+                  <span style="font-size:16px;margin-right:8px;">💯</span>
+                  <strong style="font-size:12px;color:${COLORS.text};">100% Genuine OEM Parts</strong>
                 </td>
               </tr>
               <tr>
-                <td style="padding:10px 0;border-bottom:1px solid ${COLORS.border};">
-                  <span style="font-size:18px;margin-right:10px;">🚚</span>
-                  <strong style="font-size:13px;color:${COLORS.text};">Fast Pick-up & Delivery Options</strong>
+                <td style="padding:8px 0;border-bottom:1px solid ${COLORS.border};">
+                  <span style="font-size:16px;margin-right:8px;">🚚</span>
+                  <strong style="font-size:12px;color:${COLORS.text};">Fast Pick-up & Delivery Options</strong>
                 </td>
               </tr>
               <tr>
-                <td style="padding:10px 0;">
-                  <span style="font-size:18px;margin-right:10px;">📞</span>
-                  <strong style="font-size:13px;color:${COLORS.text};">Dedicated Customer Support</strong>
+                <td style="padding:8px 0;">
+                  <span style="font-size:16px;margin-right:8px;">📞</span>
+                  <strong style="font-size:12px;color:${COLORS.text};">Dedicated Customer Support</strong>
                 </td>
               </tr>
             </table>
@@ -523,8 +496,8 @@ export async function sendWelcomeEmail(email: string, name: string) {
 
       <!-- CTA BUTTON -->
       <tr>
-        <td style="padding:32px 40px;text-align:center;">
-          <a href="${shopUrl}" style="display:inline-block;background:${COLORS.pureGreen};color:${COLORS.white};text-decoration:none;font-size:15px;font-weight:800;padding:16px 40px;border-radius:100px;letter-spacing:0.5px;">
+        <td class="responsive-cell" style="padding:24px 24px;text-align:center;">
+          <a href="${shopUrl}" style="display:inline-block;background:${COLORS.pureGreen};color:${COLORS.white};text-decoration:none;font-size:14px;font-weight:800;padding:14px 32px;border-radius:100px;letter-spacing:0.5px;">
             Start Exploring Parts →
           </a>
         </td>
@@ -534,13 +507,13 @@ export async function sendWelcomeEmail(email: string, name: string) {
     await resend.emails.send({
       from: FROM_EMAIL,
       to: [email],
-      subject: `🎉 Welcome to Emisco Investment Limited, ${name}!`,
+      subject: ` Welcome to Emisco Investment Limited, ${name}!`,
       html: buildEmailWrapper(bodyContent, `Welcome to Emisco Investment Limited, ${name}! Start exploring genuine motor parts today.`),
     });
 
-    console.log(`✅ Resend: Welcome email sent to ${email}`);
+    console.log(` Resend: Welcome email sent to ${email}`);
   } catch (error) {
-    console.error('❌ Resend Email Error (sendWelcomeEmail):', error);
+    console.error(' Resend Email Error (sendWelcomeEmail):', error);
   }
 }
 
@@ -553,11 +526,11 @@ export async function sendPasswordResetOtpEmail(email: string, name: string, otp
     const bodyContent = `
       <!-- LOCK ICON & HEADER -->
       <tr>
-        <td style="padding:36px 40px 20px;text-align:center;">
-          <div style="font-size:52px;margin-bottom:12px;line-height:1;">🔐</div>
+        <td class="responsive-cell" style="padding:28px 24px 16px;text-align:center;">
+          <div style="font-size:46px;margin-bottom:10px;line-height:1;">🔐</div>
           ${statusBadge('SECURITY VERIFICATION', COLORS.amber, '#fffbeb')}
-          <h2 style="margin:16px 0 8px;font-size:24px;font-weight:800;color:${COLORS.text};">Password Reset Code</h2>
-          <p style="margin:0;font-size:14px;color:${COLORS.muted};line-height:1.6;">
+          <h2 class="mobile-text-lg" style="margin:14px 0 6px;font-size:22px;font-weight:800;color:${COLORS.text};">Password Reset Code</h2>
+          <p style="margin:0;font-size:13px;color:${COLORS.muted};line-height:1.5;">
             Hi <strong>${name}</strong>, we received a request to reset your password for your Emisco account.
           </p>
         </td>
@@ -565,21 +538,21 @@ export async function sendPasswordResetOtpEmail(email: string, name: string, otp
 
       <!-- OTP DISPLAY BOX -->
       <tr>
-        <td style="padding:20px 40px;">
-          <div style="background:${COLORS.darkGreen};border-radius:20px;padding:28px 20px;text-align:center;">
-            <p style="margin:0 0 8px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:rgba(255,255,255,0.6);">Your 6-Digit Verification OTP</p>
-            <div style="font-size:38px;font-weight:900;color:${COLORS.white};letter-spacing:10px;font-family:monospace;margin:12px 0;">${otp}</div>
-            <p style="margin:8px 0 0;font-size:12px;color:#86efac;font-weight:600;">⏰ Expires in 20 minutes</p>
+        <td class="responsive-cell" style="padding:16px 24px;">
+          <div style="background:${COLORS.darkGreen};border-radius:16px;padding:24px 16px;text-align:center;">
+            <p style="margin:0 0 6px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:rgba(255,255,255,0.6);">Your 6-Digit Verification OTP</p>
+            <div style="font-size:32px;font-weight:900;color:${COLORS.white};letter-spacing:8px;font-family:monospace;margin:10px 0;">${otp}</div>
+            <p style="margin:6px 0 0;font-size:11px;color:#86efac;font-weight:600;">⏰ Expires in 20 minutes</p>
           </div>
         </td>
       </tr>
 
       <!-- WARNING BOX -->
       <tr>
-        <td style="padding:16px 40px 24px;">
-          <div style="background:#fff1f2;border:1px solid #fecdd3;border-radius:12px;padding:14px 18px;text-align:center;">
-            <p style="margin:0;font-size:12px;color:#be123c;line-height:1.5;">
-              <strong>Did not request this?</strong> Please ignore this email or contact support if you suspect unauthorized access to your account.
+        <td class="responsive-cell" style="padding:12px 24px 20px;">
+          <div style="background:#fff1f2;border:1px solid #fecdd3;border-radius:10px;padding:12px 14px;text-align:center;">
+            <p style="margin:0;font-size:11px;color:#be123c;line-height:1.4;">
+              <strong>Did not request this?</strong> Please ignore this email or contact support if you suspect unauthorized access.
             </p>
           </div>
         </td>
@@ -587,9 +560,9 @@ export async function sendPasswordResetOtpEmail(email: string, name: string, otp
 
       ${divider}
 
-      <tr style="padding:24px 40px;text-align:center;">
-        <td style="font-size:12px;color:${COLORS.muted};padding:24px 40px;text-align:center;">
-          If you are having trouble entering the code, please return to the website and select "Resend Code".
+      <tr>
+        <td class="responsive-cell" style="font-size:11px;color:${COLORS.muted};padding:20px 24px;text-align:center;">
+          If you have trouble entering the code, please return to the website and select "Resend Code".
         </td>
       </tr>
     `;
@@ -597,14 +570,13 @@ export async function sendPasswordResetOtpEmail(email: string, name: string, otp
     await resend.emails.send({
       from: FROM_EMAIL,
       to: [email],
-      subject: `🔑 ${otp} is your Emisco password reset code`,
+      subject: `${otp} is your Emisco password reset code`,
       html: buildEmailWrapper(bodyContent, `Your password reset code is ${otp}. Valid for 20 minutes.`),
     });
 
-    console.log(`✅ Resend: Password reset OTP email sent to ${email}`);
+    console.log(`Resend: Password reset OTP email sent to ${email}`);
   } catch (error) {
-    console.error('❌ Resend Email Error (sendPasswordResetOtpEmail):', error);
+    console.error('Resend Email Error (sendPasswordResetOtpEmail):', error);
     throw error;
   }
 }
-
