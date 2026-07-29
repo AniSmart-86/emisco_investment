@@ -113,7 +113,7 @@ export default function CheckoutClient() {
       const payRes = await api.post('/payments/initialize', {
         orderId: newOrder.id,
         email: user?.email || form.email,
-        amount: subtotal, // Customer pays items only
+        amount: subtotal *100, // Customer pays items only
       });
 
       const { authorization_url } = payRes.data;
