@@ -85,7 +85,7 @@ export function Navbar() {
       <div className="container mx-auto px-4 flex items-center justify-between">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-3 shrink-0">
-          <div className="relative w-40 h-10 rounded-md overflow-hidden ring-2 ring-pure-green/20">
+          <div className="relative w-30 h-10 rounded-md overflow-hidden ring-2 ring-pure-green/20">
             <Image
               src="/emisco_logo.png"
               alt="Emisco Investment Limited Logo"
@@ -94,10 +94,7 @@ export function Navbar() {
               sizes="40px"
             />
           </div>
-          {/* <div className="hidden sm:flex flex-col leading-none">
-            <span className="text-sm font-extrabold tracking-tight text-foreground">EMISCO</span>
-            <span className="text-[9px] font-semibold text-pure-green uppercase tracking-widest">Investment Ltd</span>
-          </div> */}
+      
         </Link>
 
         {/* Desktop Nav */}

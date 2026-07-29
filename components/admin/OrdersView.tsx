@@ -99,7 +99,7 @@ export default function OrdersView({ orders, onUpdateStatus }: OrdersViewProps) 
                                                     <div className="p-2 rounded-lg bg-muted/50 border border-border">
                                                         <div className="text-[9px] font-bold uppercase text-muted-foreground mb-1">Via {o.transportCompany}</div>
                                                         <div className="text-[9px] font-bold text-foreground leading-tight">
-                                                            📍 {o.terminalAddress || 'Terminal Pending'}
+                                                            {o.terminalAddress || 'Terminal Pending'}
                                                         </div>
                                                     </div>
                                                 )}

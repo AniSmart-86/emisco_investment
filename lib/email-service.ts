@@ -5,9 +5,10 @@ import { EMISCO_OFFICE_ADDRESS } from './logistics-data';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-const EMISCO_LOGO = "/emisco_logo.png";
+const SITE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://emiscoinvestment.com';
+const EMISCO_LOGO = `${SITE_URL}/emisco_logo.png`;
 const FROM_EMAIL = "Emisco Investment Ltd <noreply@emiscoinvestment.com>"; // Update to your verified domain
-const ADMIN_EMAIL = process.env.SMTP_USER || "anismart124@gmail.com";
+const ADMIN_EMAIL = process.env.SMTP_USER || "support@emiscoinvestment.com";
 
 // ─── DESIGN TOKENS ───────────────────────────────────────────────────────────
 const COLORS = {

@@ -35,8 +35,16 @@ export default function RegisterForm({
 
   const redirectTo = callbackUrl || '/dashboard';
 
+  const [agreeToTerms, setAgreeToTerms] = useState(false);
+
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!agreeToTerms) {
+      toast.error('Please accept the Terms & Conditions and Refund Policy to register.');
+      return;
+    }
+
     setIsLoading(true);
 
     try {
@@ -82,7 +90,7 @@ export default function RegisterForm({
             </div>
             <h1 className="text-3xl font-bold mb-2">Create Account</h1>
             <p className="text-muted-foreground italic">
-              Join Emisco for premium truck maintenance.
+              Join Emisco for genuine heavy-duty spare parts.
             </p>
           </div>
 
@@ -147,11 +155,31 @@ export default function RegisterForm({
               </div>
             </div>
 
+            {/* Consent Checkbox */}
+            <div className="flex items-start gap-3 pt-2">
+              <input
+                type="checkbox"
+                id="agreeToTerms"
+                checked={agreeToTerms}
+                onChange={(e) => setAgreeToTerms(e.target.checked)}
+                className="mt-1 w-4 h-4 rounded border-border text-pure-green focus:ring-pure-green accent-pure-green cursor-pointer"
+                required
+              />
+              <label htmlFor="agreeToTerms" className="text-xs text-muted-foreground leading-relaxed cursor-pointer select-none">
+                I have read and consent to the{' '}
+                <Link href="/terms" target="_blank" className="text-pure-green font-bold hover:underline">
+                  Terms & Conditions
+                </Link>
+              
+                .
+              </label>
+            </div>
+
             <Button
               type="submit"
               size="lg"
-              disabled={isLoading}
-              className="w-full bg-pure-green hover:bg-pure-green-hover text-white py-8 rounded-2xl text-lg font-bold group"
+              disabled={isLoading || !agreeToTerms}
+              className="w-full bg-pure-green hover:bg-pure-green-hover text-white py-8 rounded-2xl text-lg font-bold group disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? 'Registering...' : 'Register Now'}
               {!isLoading && (

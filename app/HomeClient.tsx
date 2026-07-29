@@ -399,7 +399,7 @@ export default function HomeClient() {
                 <Image src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&q=80" alt="Truck engine parts" fill className="object-cover brightness-75" />
               </div>
               <div className="absolute bottom-0 left-0 w-64 h-64 rounded-3xl overflow-hidden border-2 border-pure-green/20 shadow-2xl">
-                <Image src="https://images.unsplash.com/photo-1546961342-ea5f62d5a27f?auto=format&fit=crop&q=80" alt="Spare parts warehouse" fill className="object-cover brightness-75" />
+                <Image src="https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&q=80" alt="Spare parts warehouse" fill className="object-cover brightness-75" />
               </div>
               <div className="absolute top-1/2 left-1/3 -translate-y-1/2 bg-dark-green border border-pure-green/30 rounded-3xl p-6 shadow-2xl backdrop-blur-sm">
                 <div className="flex items-center gap-3 mb-2">

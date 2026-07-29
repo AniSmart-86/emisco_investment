@@ -69,7 +69,7 @@ export default function ContactClient() {
               </div>
               <h3 className="font-bold text-lg">Email & Phone</h3>
               <p className="text-sm text-muted-foreground">support@emiscoinvestment.com</p>
-              <p className="text-sm font-bold text-pure-green">+234 (0) 800 000 0000</p>
+              <p className="text-sm font-bold text-pure-green">+234 (0) 8082013145</p>
             </div>
           </div>
 
