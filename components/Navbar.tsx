@@ -84,7 +84,7 @@ export function Navbar() {
     >
       <div className="container mx-auto px-4 flex items-center justify-between">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2 group">
+        <Link href="/" className="relative">
         <Image src="/emisco_logo.png" alt="Logo" width={40} height={40} fill  />
         </Link>
 
