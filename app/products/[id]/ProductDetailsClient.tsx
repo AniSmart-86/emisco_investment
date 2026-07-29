@@ -64,15 +64,15 @@ export default function ProductDetailsClient({ id }: { id: string }) {
   }
 
   const handleAddToCart = () => {
-    for (let i = 0; i < quantity; i++) {
-      addItem({
-        id: product.id,
-        name: product.name,
-        price: product.price,
-        image: product.image,
-      });
-    }
-    toast.success(`Added ${quantity} ${product.name} to cart!`);
+    addItem({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      image: product.image,
+      quantity,
+      category: product.category,
+    });
+    toast.success(`Added ${quantity}× ${product.name} to cart!`);
   };
 
   return (
