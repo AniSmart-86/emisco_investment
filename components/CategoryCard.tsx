@@ -5,12 +5,21 @@ import Link from 'next/link';
 import { ChevronRight } from 'lucide-react';
 
 interface CategoryCardProps {
-  name: string;
-  image: string;
-  count: number;
+  name?: string;
+  image?: string;
+  count?: number;
+  category?: {
+    name: string;
+    image: string;
+    count: number;
+  };
 }
 
-export function CategoryCard({ name, image, count }: CategoryCardProps) {
+export function CategoryCard(props: CategoryCardProps) {
+  const name = props.name || props.category?.name || '';
+  const image = props.image || props.category?.image || '';
+  const count = props.count ?? props.category?.count ?? 0;
+
   return (
     <Link href={`/categories/${name}`}>
       <motion.div

@@ -85,13 +85,7 @@ export function Navbar() {
       <div className="container mx-auto px-4 flex items-center justify-between">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 group">
-          <div className="w-10 h-10 bg-pure-green rounded-xl flex items-center justify-center transition-transform group-hover:scale-110">
-            <Truck className="text-white w-6 h-6" />
-          </div>
-          <div className="flex flex-col">
-            <span className="font-bold text-xl leading-none">EMISCO</span>
-            <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">Investment Ltd</span>
-          </div>
+        <Image src="/emisco_logo.png" alt="Logo" width={40} height={40} fill  />
         </Link>
 
         {/* Desktop Nav */}
@@ -137,7 +131,7 @@ export function Navbar() {
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       onKeyDown={(e) => e.key === 'Enter' && handleSearch(searchQuery)}
-                      className="w-[300px] bg-muted/50 border border-border/50 rounded-xl pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pure-green/50 transition-all font-medium"
+                      className="w-75 bg-muted/50 border border-border/50 rounded-xl pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pure-green/50 transition-all font-medium"
                     />
                     
                     {/* Quick Results Dropdown */}

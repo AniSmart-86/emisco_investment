@@ -34,7 +34,7 @@ export default function ProductsView({
           <Table>
             <TableHeader>
               <TableRow className="border-border">
-                <TableHead className="font-bold min-w-[20px] md:min-w-[200px]">Part Name</TableHead>
+                <TableHead className="font-bold min-w-5 md:min-w-50">Part Name</TableHead>
                 <TableHead className="font-bold">Category</TableHead>
                 <TableHead className="font-bold">Price</TableHead>
                 <TableHead className="font-bold">Stock</TableHead>

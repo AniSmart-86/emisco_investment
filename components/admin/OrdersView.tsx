@@ -47,7 +47,7 @@ export default function OrdersView({ orders, onUpdateStatus }: OrdersViewProps) 
                                         <div className="font-bold text-sm">{o.user?.name || 'Guest'}</div>
                                         <div className="text-[10px] text-muted-foreground italic">{o.user?.email || 'N/A'}</div>
                                         {o.user?.phone && (
-                                            <div className="text-[10px] text-muted-foreground mt-0.5">📞 {o.user.phone}</div>
+                                            <div className="text-[10px] text-muted-foreground mt-0.5">📞 {o.user?.phone}</div>
                                         )}
                                     </TableCell>
 
@@ -62,7 +62,7 @@ export default function OrdersView({ orders, onUpdateStatus }: OrdersViewProps) 
                                     </TableCell>
 
                                     {/* Fulfilment Column — shows pickup vs delivery with address/bus stop */}
-                                    <TableCell className="max-w-[220px]">
+                                    <TableCell className="max-w-55">
                                         {o.deliveryMethod === 'pickup' ? (
                                             <div className="space-y-1">
                                                 <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 w-fit">
@@ -70,7 +70,7 @@ export default function OrdersView({ orders, onUpdateStatus }: OrdersViewProps) 
                                                     <span className="text-[10px] font-bold uppercase text-emerald-600 tracking-wider">Store Pick-up</span>
                                                 </div>
                                                 <div className="text-[10px] text-muted-foreground font-semibold line-clamp-2" title={o.shippingAddress || ''}>
-                                                    📍 {o.shippingAddress || 'Office Address'}
+                                                     {o.shippingAddress || 'Office Address'}
                                                 </div>
                                             </div>
                                         ) : o.deliveryMethod === 'delivery' ? (
@@ -84,7 +84,7 @@ export default function OrdersView({ orders, onUpdateStatus }: OrdersViewProps) 
                                                 </div>
                                                 {o.nearestBusStop && (
                                                     <div className="text-[10px] text-muted-foreground font-semibold">
-                                                        🚏 {o.nearestBusStop}
+                                                        Bustop: {o.nearestBusStop}
                                                     </div>
                                                 )}
                                             </div>

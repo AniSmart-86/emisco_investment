@@ -33,7 +33,7 @@ export default function UsersView({ users, onDeleteUser }: UsersViewProps) {
                 <TableRow key={u.id} className="border-border hover:bg-muted/30 whitespace-nowrap">
                   <TableCell className="font-bold py-6 px-4">{u.name}</TableCell>
                   <TableCell className="text-sm italic text-muted-foreground">{u.email}</TableCell>
-                  <TableCell className="text-xs max-w-[200px] truncate">{u.address || 'No address saved'}</TableCell>
+                  <TableCell className="text-xs max-w-50 truncate">{u.address || 'No address saved'}</TableCell>
                   <TableCell>
                     <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${u.role === 'ADMIN' ? 'bg-pure-green/10 text-pure-green border border-pure-green/20' : 'bg-muted text-muted-foreground'}`}>
                       {u.role}

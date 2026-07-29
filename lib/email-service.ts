@@ -5,8 +5,8 @@ import { EMISCO_OFFICE_ADDRESS } from './logistics-data';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-const EMISCO_LOGO = "https://res.cloudinary.com/dupdplmls/image/upload/v1774946745/l5kle05zlyyu08qo5cyy.jpg";
-const FROM_EMAIL = "Emisco Investment Ltd <support@emiscoinvestment.com>"; // Update to your verified domain
+const EMISCO_LOGO = "/emisco_logo.png";
+const FROM_EMAIL = "Emisco Investment Ltd <noreply@emiscoinvestment.com>"; // Update to your verified domain
 const ADMIN_EMAIL = process.env.SMTP_USER || "anismart124@gmail.com";
 
 // ─── DESIGN TOKENS ───────────────────────────────────────────────────────────
@@ -45,7 +45,7 @@ function buildEmailWrapper(content: string, previewText: string = '') {
       <td align="center" style="padding:40px 16px;">
         
         <!-- EMAIL CARD -->
-        <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="max-width:600px;background:${COLORS.white};border-radius:24px;overflow:hidden;box-shadow:0 4px 40px rgba(0,0,0,0.08);border:1px solid ${COLORS.border};">
+        <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="max-width:100%; background:${COLORS.white};border-radius:24px;overflow:hidden;box-shadow:0 4px 40px rgba(0,0,0,0.08);border:1px solid ${COLORS.border};">
           
           <!-- HEADER -->
           <tr>

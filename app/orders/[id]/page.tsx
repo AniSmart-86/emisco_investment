@@ -455,7 +455,7 @@ export default function OrderDetailsPage() {
         </motion.div>
       </main>
 
-      <Footer />
+     
     </div>
   );
 }
