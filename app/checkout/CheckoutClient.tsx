@@ -113,14 +113,22 @@ export default function CheckoutClient() {
       const payRes = await api.post('/payments/initialize', {
         orderId: newOrder.id,
         email: user?.email || form.email,
-        amount: subtotal *100, // Customer pays items only
+        amount: subtotal,
       });
 
-      const { authorization_url } = payRes.data;
+      const authorizationUrl =
+        payRes.data?.data?.authorization_url ||
+        payRes.data?.authorization_url;
+
+      if (!authorizationUrl) {
+        throw new Error(
+          payRes.data?.error || 'Failed to generate Paystack checkout link.'
+        );
+      }
 
       // Clear cart & Redirect to Paystack checkout
       clearCart();
-      window.location.href = authorization_url;
+      window.location.href = authorizationUrl;
     } catch (err: any) {
       console.error(err);
       toast.error(

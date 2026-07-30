@@ -32,6 +32,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Unauthorized access to this order" }, { status: 403 });
     }
 
+    // Paystack expects amount in Kobo (NGN * 100)
+    // Safety check: if amount is already > 1,000,000 (likely pre-multiplied by 100), use as-is; otherwise multiply by 100
+    const numericAmount = Number(amount);
+    const amountInKobo = numericAmount > 1000000 ? Math.round(numericAmount) : Math.round(numericAmount * 100);
+
     const res = await fetch("https://api.paystack.co/transaction/initialize", {
       method: "POST",
       headers: {
@@ -40,10 +45,8 @@ export async function POST(request: Request) {
       },
       body: JSON.stringify({
         email,
-        amount,
+        amount: amountInKobo,
         callback_url: `${process.env.NEXT_PUBLIC_BASE_URL}/order-confirmation?orderId=${orderId}`,
-
-        
         metadata: {
           orderId,
         },
@@ -51,6 +54,18 @@ export async function POST(request: Request) {
     });
 
     const result = await res.json();
+
+    if (!res.ok) {
+      return NextResponse.json(
+        { error: result.message || "Failed to initialize payment" },
+        { status: 400 }
+      );
+    }
+
+    return NextResponse.json({
+      ...result,
+      authorization_url: result.data?.authorization_url,
+    });
 
 
 

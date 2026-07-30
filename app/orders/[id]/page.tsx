@@ -109,10 +109,10 @@ export default function OrderDetailsPage() {
         }),
       });
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to initialize payment');
-      
-      window.location.href = data.data.authorization_url;
+      const authorizationUrl = data.data?.authorization_url || data.authorization_url;
+      if (!authorizationUrl) throw new Error(data.error || 'Failed to initialize payment');
+
+      window.location.href = authorizationUrl;
     } catch (error) {
       console.error('Pay Now Error:', error);
       toast.error(error instanceof Error ? error.message : 'Could not initialize payment');
