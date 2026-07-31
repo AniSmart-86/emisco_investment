@@ -57,8 +57,9 @@ export default function DashboardPage() {
         }),
       });
 
-      const authorizationUrl = data.data?.authorization_url || data.authorization_url;
-      if (!authorizationUrl) throw new Error(data.error || 'Failed to initialize payment');
+      const result = await res.json();
+      const authorizationUrl = result.data?.authorization_url || result.data?.data?.authorization_url;
+      if (!authorizationUrl) throw new Error(result.data?.error || 'Failed to initialize payment');
 
       window.location.href = authorizationUrl;
     } catch (error) {
