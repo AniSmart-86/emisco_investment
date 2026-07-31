@@ -98,32 +98,24 @@ export default function HomeClient() {
             className="object-cover brightness-[0.25]"
             priority
           />
-          {/* <div className="absolute inset-0 bg-linear-to-r from-background via-background/70 to-transparent" />
-          <div className="absolute inset-0 bg-linear-to-t from-background/60 via-transparent to-transparent" /> */}
+          {/* <div className="absolute inset-0 bg-linear-to-r from-background via-background/70 to-transparent" /> */}
+          {/* <div className="absolute inset-0 bg-linear-to-t from-background/60 via-transparent to-transparent" /> */}
         </div>
 
         {/* Floating decorators */}
-        <div className="absolute top-1/4 right-10 w-72 h-72 bg-pure-green/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-1/4 right-1/3 w-48 h-48 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
+         {/* <div className="absolute top-1/4 right-10 w-72 h-72 bg-pure-green/10 rounded-full blur-3xl pointer-events-none" /> */}
+        {/* <div className="absolute bottom-1/4 right-1/3 w-48 h-48 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />  */}
 
-        <div className="container mx-auto px-4 relative z-10 py-20 text-center">
+        <div className="container mx-auto px-4 relative z-10 py-20 flex flex-col items-center justify-center">
           <motion.div
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="max-w-3xl space-y-8"
+            className="max-w-4xl space-y-8"
           >
-            <motion.span
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.2 }}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-pure-green/10 text-pure-green text-xs font-bold uppercase tracking-widest border border-pure-green/20"
-            >
-              <span className="w-2 h-2 rounded-full bg-pure-green animate-pulse" />
-              Nigeria&apos;s #1 Heavy Duty Truck Parts Distributor
-            </motion.span>
+        
 
-            <h1 className="text-5xl md:text-7xl font-black tracking-tight text-white leading-[1.05]">
+            <h1 className="text-5xl md:text-7xl font-black tracking-tight text-white leading-[1.05] ">
               Keep Your Fleet{' '}
               <span className="text-transparent bg-clip-text bg-linear-to-r from-pure-green to-emerald-400">
                 Moving
@@ -140,13 +132,13 @@ export default function HomeClient() {
 
             <div className="flex flex-wrap gap-4 pt-2">
               <Link href="/products">
-                <Button size="lg" className="bg-pure-green hover:bg-pure-green-hover text-white px-8 py-7 rounded-2xl text-base font-bold shadow-2xl shadow-pure-green/30 group">
+                <Button size="xs" className="bg-pure-green hover:bg-pure-green-hover text-white px-4 py-5 rounded-2xl text-base font-bold shadow-2xl shadow-pure-green/30 group">
                   Shop Spare Parts
                   <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </Link>
               <Link href="/contact">
-                <Button size="lg" variant="outline" className="border-white/20 text-white hover:bg-white/10 px-8 py-7 rounded-2xl text-base font-bold backdrop-blur-sm">
+                <Button size="xs" variant="outline" className="border-white/20 text-white hover:bg-white/10 px-4 py-5 rounded-2xl text-base font-bold backdrop-blur-sm">
                   <Phone className="mr-2 w-5 h-5" /> Talk to an Expert
                 </Button>
               </Link>
