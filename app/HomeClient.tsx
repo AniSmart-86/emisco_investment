@@ -98,15 +98,15 @@ export default function HomeClient() {
             className="object-cover brightness-[0.25]"
             priority
           />
-          <div className="absolute inset-0 bg-linear-to-r from-background via-background/70 to-transparent" />
-          <div className="absolute inset-0 bg-linear-to-t from-background/60 via-transparent to-transparent" />
+          {/* <div className="absolute inset-0 bg-linear-to-r from-background via-background/70 to-transparent" />
+          <div className="absolute inset-0 bg-linear-to-t from-background/60 via-transparent to-transparent" /> */}
         </div>
 
         {/* Floating decorators */}
         <div className="absolute top-1/4 right-10 w-72 h-72 bg-pure-green/10 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute bottom-1/4 right-1/3 w-48 h-48 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
 
-        <div className="container mx-auto px-4 relative z-10 py-20">
+        <div className="container mx-auto px-4 relative z-10 py-20 text-center">
           <motion.div
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
