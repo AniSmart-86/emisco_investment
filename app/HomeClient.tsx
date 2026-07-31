@@ -106,7 +106,7 @@ export default function HomeClient() {
          {/* <div className="absolute top-1/4 right-10 w-72 h-72 bg-pure-green/10 rounded-full blur-3xl pointer-events-none" /> */}
         {/* <div className="absolute bottom-1/4 right-1/3 w-48 h-48 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />  */}
 
-        <div className="container mx-auto px-4 relative z-10 py-20 flex flex-col items-center justify-center">
+        <div className="container mx-auto px-4 relative z-10 py-20 flex flex-col items-center text-center">
           <motion.div
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
@@ -130,7 +130,7 @@ export default function HomeClient() {
               Authorized distributor of 100% genuine heavy-duty components for Mack, Volvo, DAF, Mercedes and more. Same-day pick-up available in Lagos.
             </p>
 
-            <div className="flex flex-wrap gap-4 pt-2">
+            <div className="flex flex-wrap gap-4 pt-2 items-center justify-center">
               <Link href="/products">
                 <Button size="xs" className="bg-pure-green hover:bg-pure-green-hover text-white px-4 py-5 rounded-2xl text-base font-bold shadow-2xl shadow-pure-green/30 group">
                   Shop Spare Parts
@@ -145,7 +145,7 @@ export default function HomeClient() {
             </div>
 
             {/* Quick trust badges */}
-            <div className="flex flex-wrap gap-6 pt-4">
+            <div className="flex flex-wrap gap-6 pt-4 justify-center">
               {['100% Genuine Parts', 'Nationwide Delivery', 'Expert Support'].map((badge) => (
                 <div key={badge} className="flex items-center gap-2 text-white/60 text-sm">
                   <CheckCircle2 className="w-4 h-4 text-pure-green" />
