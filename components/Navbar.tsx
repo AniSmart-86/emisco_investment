@@ -129,18 +129,18 @@ export function Navbar() {
                   initial={{ width: 0, opacity: 0 }}
                   animate={{ width: 300, opacity: 1 }}
                   exit={{ width: 0, opacity: 0 }}
-                  className="absolute right-full mr-2 z-50 overflow-hidden"
+                  className="absolute -right-25 top-15 z-50 overflow-hidden"
                 >
                   <div className="relative group">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                     <input
                       autoFocus
                       type="text"
-                      placeholder="Search parts, Mack, Volvo..."
+                      placeholder="Search for parts..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       onKeyDown={(e) => e.key === 'Enter' && handleSearch(searchQuery)}
-                      className="w-75 bg-muted/50 border border-border/50 rounded-xl pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pure-green/50 transition-all font-medium"
+                      className="w-75 bg-muted/90 border border-border/50 rounded-xl pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pure-green/50 transition-all font-medium"
                     />
                     
                     {/* Quick Results Dropdown */}
@@ -258,20 +258,7 @@ export function Navbar() {
             className="md:hidden bg-background border-b border-border overflow-hidden"
           >
             <div className="flex flex-col p-4 gap-4">
-              <div className="relative mb-2">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <input
-                  type="text"
-                  placeholder="Search products..."
-                  className="w-full bg-muted/50 border border-border rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none"
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      handleSearch((e.target as HTMLInputElement).value);
-                      setIsOpen(false);
-                    }
-                  }}
-                />
-              </div>
+            
               {navItems.map((item) => (
                 <Link
                   key={item.path}
