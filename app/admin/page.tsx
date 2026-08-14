@@ -470,6 +470,11 @@ export default function AdminDashboard() {
                           <option value="MAN Diesel">MAN Diesel</option>
                           <option value="DAF">DAF</option>
                           <option value="Scania">Scania</option>
+                          <option value="Shacman">Shacman</option>
+                          <option value="Iveco">Iveco</option>
+                          <option value="Mercedes">Mercedes</option>
+                          <option value="Dongfeng">Dongfeng</option>
+                          <option value="Foton">Foton</option>
                           <option value="HOWO">HOWO</option>
                         </select>
                       </div>

@@ -8,7 +8,7 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 const SITE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://emiscoinvestment.com';
 const EMISCO_LOGO = `${SITE_URL}/emisco_logo.png`;
 const FROM_EMAIL = "Emisco Investment Ltd <noreply@emiscoinvestment.com>";
-const ADMIN_EMAIL = process.env.SMTP_USER || "michaely@emiscoinvestment.com";
+const ADMIN_EMAIL = process.env.SMTP_USER || "Emisco Investment Ltd <michael@emiscoinvestment.com";
 
 // ─── DESIGN TOKENS ───────────────────────────────────────────────────────────
 const COLORS = {
